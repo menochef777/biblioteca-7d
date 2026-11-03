@@ -1,0 +1,2705 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="cinza-conforto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca 7D — Leitor Pro & Absorção Mental</title>
+  
+  <!-- Fontes de Alta Absorção: Literata (Serifada Editorial) e Plus Jakarta Sans (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM NEURO-ERGONÔMICO (frontend-design-master)
+       ========================================================================== */
+    :root {
+      --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-body: 'Literata', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --font-size: 21px;
+      --line-height: 1.85;
+      --max-width: 660px; /* Largura áurea de leitura para retenção mental máxima */
+      
+      /* TEMA 1 (PADRÃO NOTURNO): Âmbar Noturno (Zero luz azul, melatonina preservada) */
+      --bg: #13100D;
+      --bg-surface: #1C1814;
+      --bg-elevated: #28221C;
+      --text-main: #EED9BF;
+      --text-muted: #A1907D;
+      --border: rgba(238, 217, 191, 0.09);
+      --border-hover: rgba(245, 158, 11, 0.4);
+      --accent: #F59E0B;
+      --accent-glow: rgba(245, 158, 11, 0.2);
+      --highlight: rgba(245, 158, 11, 0.22);
+      --bionic-color: #FCD34D;
+      --card-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.75);
+    }
+
+    /* TEMA 2: Sálvia Noturno (Calmante para hiperatividade/ansiedade mental) */
+    [data-theme="salvia"] {
+      --bg: #0D1311;
+      --bg-surface: #141C1A;
+      --bg-elevated: #1D2825;
+      --text-main: #D2E4DC;
+      --text-muted: #7E968E;
+      --border: rgba(210, 228, 220, 0.08);
+      --border-hover: rgba(16, 185, 129, 0.35);
+      --accent: #10B981;
+      --accent-glow: rgba(16, 185, 129, 0.18);
+      --highlight: rgba(16, 185, 129, 0.2);
+      --bionic-color: #6EE7B7;
+    }
+
+    /* TEMA 3: Carvão & Pérola (Contraste Focado Profundo) */
+    [data-theme="charcoal"] {
+      --bg: #0E1116;
+      --bg-surface: #161B23;
+      --bg-elevated: #202732;
+      --text-main: #E2E8F0;
+      --text-muted: #8A96A6;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(56, 189, 248, 0.35);
+      --accent: #38BDF8;
+      --accent-glow: rgba(56, 189, 248, 0.18);
+      --highlight: rgba(56, 189, 248, 0.2);
+      --bionic-color: #BAE6FD;
+    }
+
+    /* TEMA 4: OLED Minimal Preto Puro */
+    [data-theme="oled"] {
+      --bg: #000000;
+      --bg-surface: #0E0F12;
+      --bg-elevated: #16181D;
+      --text-main: #E4E4E7;
+      --text-muted: #71717A;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(249, 115, 22, 0.4);
+      --accent: #F97316;
+      --accent-glow: rgba(249, 115, 22, 0.16);
+      --highlight: rgba(249, 115, 22, 0.22);
+      --bionic-color: #FED7AA;
+    }
+
+    /* TEMA 5 (NOVO): Cinza Conforto (Cinza-Claro sobre Cinza-Escuro & Tipografia Limpa Sans-Serif) */
+    [data-theme="cinza-conforto"] {
+      --bg: #141416;
+      --bg-surface: #1E1E22;
+      --bg-elevated: #28282E;
+      --text-main: #E4E4E7;
+      --text-muted: #94949E;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(74, 222, 128, 0.45);
+      --accent: #4ADE80;
+      --accent-glow: rgba(74, 222, 128, 0.2);
+      --highlight: rgba(74, 222, 128, 0.22);
+      --bionic-color: #86EFAC;
+      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --line-height: 1.95;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html, body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      transition: background-color 0.25s ease, color 0.25s ease;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Barra de Progresso Superior */
+    #progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: transparent;
+      z-index: 1010;
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--bionic-color));
+      box-shadow: 0 0 10px var(--accent);
+      transition: width 0.08s ease-out;
+    }
+
+    /* Header Global (Apple TV Floating Overlay) */
+    header.app-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-bottom: none;
+      padding: 24px 64px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      pointer-events: none;
+    }
+
+    .header-left {
+      display: none;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .brand-icon {
+      font-size: 22px;
+      filter: drop-shadow(0 0 10px var(--accent));
+    }
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .btn {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .btn:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-hover);
+      color: #FFF;
+      transform: translateY(-1px);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), #B45309);
+      color: #000;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn.primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+    .btn.active {
+      background: var(--accent) !important;
+      color: #000 !important;
+      border-color: var(--accent) !important;
+      font-weight: 800;
+      box-shadow: 0 0 16px var(--accent-glow), 0 0 8px var(--accent);
+      animation: pulseBtnActive 1.8s infinite ease-in-out;
+    }
+    @keyframes pulseBtnActive {
+      0%, 100% { box-shadow: 0 0 10px var(--accent-glow); transform: scale(1); }
+      50% { box-shadow: 0 0 20px var(--accent); transform: scale(1.02); }
+    }
+
+    /* Seletor de Temas Noturnos */
+    .theme-picker {
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 3px 6px;
+      gap: 5px;
+    }
+    .theme-opt {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: transform 0.15s ease;
+    }
+    .theme-opt:hover { transform: scale(1.15); }
+    .theme-opt.cinza-conforto { background: #1E1E22; border-color: #4ADE80; }
+    .theme-opt.amber-night { background: #13100D; border-color: #F59E0B; }
+    .theme-opt.salvia { background: #0D1311; border-color: #10B981; }
+    .theme-opt.charcoal { background: #0E1116; border-color: #38BDF8; }
+    .theme-opt.oled { background: #000000; border-color: #71717A; }
+
+    /* ==========================================================================
+       DASHBOARD APPLE TV (CINEMATIC SHOWCASE & 16:9 FOCUS ENGINE)
+       ========================================================================== */
+    #view-shelf {
+      max-width: 100%;
+      margin: 0;
+      padding: 0 0 100px 0;
+      background: #070709;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Hero Showcase Apple TV (Topo Cinematográfico) */
+    .apple-hero {
+      position: relative;
+      width: 100%;
+      min-height: 560px;
+      height: 70vh;
+      max-height: 700px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 40px 64px 44px;
+      overflow: hidden;
+      box-sizing: border-box;
+      background: #070709;
+    }
+
+    .apple-hero-backdrop-wrap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .apple-hero-backdrop {
+      position: absolute;
+      top: -4%;
+      right: 2%;
+      width: 68%;
+      height: 108%;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: right center;
+      transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: scale(1.02);
+      filter: saturate(1.15) contrast(1.06) brightness(0.92);
+    }
+
+    /* Vinhetas Apple TV: fundem o pôster com o fundo preto à esquerda e embaixo */
+    .apple-hero-vignette-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 68%;
+      height: 100%;
+      background: linear-gradient(to right, #070709 0%, #070709 38%, rgba(7,7,9,0.9) 62%, rgba(7,7,9,0.2) 90%, transparent 100%);
+      z-index: 2;
+    }
+
+    .apple-hero-vignette-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 65%;
+      background: linear-gradient(to top, #070709 0%, rgba(7,7,9,0.85) 40%, transparent 100%);
+      z-index: 2;
+    }
+
+    .apple-hero-ambient-glow {
+      position: absolute;
+      top: 15%;
+      right: 20%;
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
+      filter: blur(90px);
+      z-index: 1;
+      pointer-events: none;
+      transition: background 0.6s ease;
+    }
+
+    /* Pílula Apple TV Home (Canto Superior Esquerdo) */
+    .apple-top-pill {
+      position: absolute;
+      top: 26px;
+      left: 64px;
+      z-index: 20;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 7px 18px 7px 13px;
+      border-radius: 9999px;
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-top-pill:hover {
+      background: rgba(255, 255, 255, 0.24);
+      transform: scale(1.04);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .apple-pill-chevron {
+      font-size: 16px;
+      opacity: 0.65;
+      line-height: 1;
+    }
+    .apple-pill-icon {
+      font-size: 15px;
+    }
+
+    /* Conteúdo Hero (Coluna Esquerda) */
+    .apple-hero-content {
+      position: relative;
+      z-index: 10;
+      max-width: 620px;
+      margin-bottom: 24px;
+      animation: appleHeroFadeIn 0.5s ease-out;
+    }
+    @keyframes appleHeroFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .apple-hero-badges {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+    .apple-badge-category {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+    .apple-badge-rating {
+      font-size: 12px;
+      font-weight: 700;
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+    .apple-badge-pill {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .apple-hero-title {
+      font-size: clamp(2.3rem, 4.6vw, 3.6rem);
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+      text-transform: uppercase;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    .apple-hero-author {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.88);
+      margin-bottom: 12px;
+    }
+
+    .apple-hero-desc {
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.74);
+      margin-bottom: 24px;
+      max-width: 520px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    .apple-hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Botão Principal Apple TV: Branco puro com texto preto e cantos Apple */
+    .apple-btn-primary {
+      background: #FFFFFF;
+      color: #000000;
+      border: none;
+      font-size: 15.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      padding: 13px 26px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 28px rgba(255, 255, 255, 0.22);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      font-family: var(--font-ui);
+    }
+    .apple-btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 14px 36px rgba(255, 255, 255, 0.4);
+      background: #F4F4F6;
+    }
+    .apple-btn-primary:active {
+      transform: scale(0.98);
+    }
+    .apple-btn-primary .play-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    /* Botão Secundário Apple TV: Vidro translúcido */
+    .apple-btn-secondary {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 22px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      user-select: none;
+      font-family: var(--font-ui);
+    }
+    .apple-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: scale(1.03);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Dots de Paginação do Carrossel Apple TV */
+    .apple-hero-dots {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .apple-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.32);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-dot.active {
+      width: 24px;
+      border-radius: 3px;
+      background: #FFFFFF;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Filtros abaixo do Hero */
+    .apple-filters-wrap {
+      padding: 0 64px;
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+    .netflix-filters {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .netflix-filters::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .filter-pill:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+    .filter-pill.active {
+      background: #FFFFFF !important;
+      color: #000000 !important;
+      border-color: #FFFFFF !important;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Fileiras Apple TV (Horizontal Rows) */
+    .apple-row-wrap {
+      margin-bottom: 42px;
+      padding: 0 64px;
+      position: relative;
+    }
+    .apple-row-header {
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .apple-row-title {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .apple-row-count {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: var(--font-mono);
+    }
+
+    /* Trilho de Scroll Horizontal Apple TV */
+    .apple-row-track-container {
+      position: relative;
+    }
+    .apple-row-track {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding: 14px 6px 28px 4px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .apple-row-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Botões de Navegação das Fileiras */
+    .apple-nav-arrow {
+      position: absolute;
+      top: 36%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(18, 18, 22, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 25;
+      font-size: 22px;
+      line-height: 1;
+      opacity: 0;
+      transition: all 0.22s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      user-select: none;
+    }
+    .apple-row-track-container:hover .apple-nav-arrow {
+      opacity: 0.95;
+    }
+    .apple-nav-arrow:hover {
+      opacity: 1 !important;
+      transform: translateY(-50%) scale(1.14);
+      background: #FFFFFF;
+      color: #000000;
+    }
+    .apple-nav-arrow.prev { left: -18px; }
+    .apple-nav-arrow.next { right: -18px; }
+
+    /* CARD APPLE TV 16:9 WIDESCREEN CINEMATOGRÁFICO */
+    .apple-card {
+      width: 290px;
+      flex-shrink: 0;
+      cursor: pointer;
+      text-decoration: none;
+      user-select: none;
+      position: relative;
+    }
+
+    .apple-card-media {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Efeito Foco / Hover Apple TV (Parallax Scale & Specular Focus Ring) */
+    .apple-card:hover .apple-card-media,
+    .apple-card.active-preview .apple-card-media {
+      transform: scale(1.08) translateY(-6px);
+      outline: 3px solid rgba(255, 255, 255, 0.95);
+      border-color: transparent;
+      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.95), 0 0 30px rgba(255, 255, 255, 0.25);
+      z-index: 10;
+    }
+
+    .apple-card-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(18px) brightness(0.35) saturate(1.4);
+      transform: scale(1.25);
+    }
+
+    .apple-card-poster {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      z-index: 2;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.72) 100%);
+    }
+
+    .apple-card-cover-img {
+      max-height: 86%;
+      max-width: 44%;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.85);
+      transition: transform 0.3s ease;
+    }
+    .apple-card:hover .apple-card-cover-img {
+      transform: scale(1.06) rotate(-1deg);
+    }
+
+    .apple-card-rank {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      z-index: 5;
+      font-size: 11px;
+      font-weight: 900;
+      color: #000;
+      background: #FFFFFF;
+      padding: 2px 7px;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      letter-spacing: 0.04em;
+    }
+
+    .apple-card-time {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      z-index: 5;
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFFFFF;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-family: var(--font-mono);
+    }
+
+    /* Barra de Progresso no Rodapé do Card (Estilo Apple TV) */
+    .apple-card-progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.22);
+      z-index: 6;
+      overflow: hidden;
+    }
+    .apple-card-progress-fill {
+      height: 100%;
+      background: #FFFFFF;
+      box-shadow: 0 0 8px #FFFFFF;
+      transition: width 0.3s ease;
+    }
+
+    /* Tipografia Abaixo do Card */
+    .apple-card-info {
+      padding-top: 10px;
+    }
+    .apple-card-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #F5F5F7;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+      transition: color 0.2s ease;
+    }
+    .apple-card:hover .apple-card-title {
+      color: #FFFFFF;
+    }
+    .apple-card-subtitle {
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.52);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       VIEW: LEITOR NEURO-ERGONÔMICO
+       ========================================================================== */
+    #view-reader { display: none; }
+
+    .reader-subbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: 1000;
+      background: rgba(19, 16, 13, 0.95);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
+      transition: background-color 0.25s ease;
+    }
+    [data-theme="cinza-conforto"] .reader-subbar { background: rgba(20, 20, 22, 0.95); }
+    [data-theme="salvia"] .reader-subbar { background: rgba(13, 19, 17, 0.95); }
+    [data-theme="charcoal"] .reader-subbar { background: rgba(14, 17, 22, 0.95); }
+    [data-theme="oled"] .reader-subbar { background: rgba(0, 0, 0, 0.98); }
+
+    .reader-bar-left, .reader-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .reader-page-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--bg-surface);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    /* Botão Olhinho Zen / Imersão (Canto Superior Esquerdo, Abaixo da Estante) */
+    .zen-eye-toggle {
+      position: fixed;
+      top: 56px;
+      left: 18px;
+      z-index: 1050;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      opacity: 0.45;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      user-select: none;
+    }
+    .zen-eye-toggle:hover {
+      opacity: 1;
+      transform: scale(1.18);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    /* Estado Modo Imersivo: Oculta a Navbar */
+    body.zen-navbar-hidden .reader-subbar {
+      transform: translateY(-110%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    }
+    body.zen-navbar-hidden .reader-content-wrap {
+      padding-top: 36px !important;
+      transition: padding-top 0.28s ease;
+    }
+    body.zen-navbar-hidden .zen-eye-toggle {
+      top: 14px;
+      opacity: 0.5;
+    }
+    body.zen-navbar-hidden .zen-eye-toggle:hover {
+      opacity: 1;
+    }
+
+    .reader-content-wrap {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 85px 24px 220px;
+    }
+
+    /* Tipografia & Absorção */
+    .book-heading {
+      font-family: var(--font-ui);
+      color: var(--text-main);
+      margin-top: 2.6em;
+      margin-bottom: 0.8em;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+    .book-heading.lvl-1 {
+      font-size: 2.1em;
+      font-weight: 800;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 12px;
+      margin-top: 3.2em;
+    }
+    .book-heading.lvl-2 {
+      font-size: 1.55em;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 2.2em;
+    }
+    .book-heading.lvl-3 {
+      font-size: 1.25em;
+      font-weight: 600;
+      margin-top: 1.8em;
+    }
+
+    p.book-p {
+      font-family: var(--font-body);
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      margin-bottom: 1.6em;
+      text-align: left;
+      hyphens: none;
+      -webkit-hyphens: none;
+      word-break: normal;
+      overflow-wrap: break-word;
+      color: var(--text-main);
+      letter-spacing: -0.005em;
+      transition: opacity 0.25s ease, filter 0.25s ease, transform 0.2s ease;
+      position: relative;
+    }
+
+    /* ==========================================================================
+       MODO FOCO CEREBRAL (FOCUS MODE) - Elimina distração periférica!
+       ========================================================================== */
+    body.focus-mode-active #reader-content p.book-p {
+      opacity: 0.32;
+      filter: blur(0.3px);
+    }
+    body.focus-mode-active #reader-content p.book-p:hover,
+    body.focus-mode-active #reader-content p.book-p.tts-active,
+    body.focus-mode-active #reader-content p.book-p.active-focus {
+      opacity: 1 !important;
+      filter: blur(0) !important;
+      transform: scale(1.008);
+      background: var(--highlight);
+      border-left: 4px solid var(--accent);
+      padding-left: 16px;
+      border-radius: 6px;
+    }
+
+    /* Bionic Reading - Letras Guias em Ouro */
+    b.bionic-lead {
+      font-weight: 700;
+      color: var(--bionic-color);
+      text-shadow: 0 0 1px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Grifados & Destaques Originais do Autor */
+    p.book-p strong,
+    p.book-p b:not(.bionic-lead) {
+      font-weight: 700;
+      color: #FFFFFF;
+      background: rgba(74, 222, 128, 0.16);
+      border-bottom: 2px solid var(--accent);
+      padding: 1px 4px;
+      border-radius: 4px;
+      letter-spacing: -0.01em;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: background 0.2s ease;
+    }
+    [data-theme="amber-night"] p.book-p strong,
+    [data-theme="amber-night"] p.book-p b:not(.bionic-lead) {
+      background: rgba(245, 158, 11, 0.18);
+      border-bottom-color: #F59E0B;
+    }
+    [data-theme="emerald-deep"] p.book-p strong,
+    [data-theme="emerald-deep"] p.book-p b:not(.bionic-lead) {
+      background: rgba(16, 185, 129, 0.18);
+      border-bottom-color: #10B981;
+    }
+    [data-theme="sapphire-calm"] p.book-p strong,
+    [data-theme="sapphire-calm"] p.book-p b:not(.bionic-lead) {
+      background: rgba(56, 189, 248, 0.18);
+      border-bottom-color: #38BDF8;
+    }
+    [data-theme="terracotta-warm"] p.book-p strong,
+    [data-theme="terracotta-warm"] p.book-p b:not(.bionic-lead) {
+      background: rgba(249, 115, 22, 0.18);
+      border-bottom-color: #F97316;
+    }
+    [data-theme="cinza-conforto"] p.book-p strong,
+    [data-theme="cinza-conforto"] p.book-p b:not(.bionic-lead) {
+      background: rgba(74, 222, 128, 0.18);
+      border-bottom-color: #4ADE80;
+      color: #FFFFFF;
+    }
+
+    /* Parágrafo do Locutor Ativo */
+    p.book-p.tts-active {
+      background: var(--highlight);
+      border-left: 4px solid var(--accent);
+      padding-left: 16px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    /* Imagens e Figuras Preservadas */
+    .book-figure {
+      margin: 3em auto;
+      max-width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+      cursor: zoom-in;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .book-figure:hover {
+      border-color: var(--border-hover);
+      transform: scale(1.01);
+    }
+    .book-figure img {
+      max-width: 100%;
+      height: auto;
+      max-height: 550px;
+      border-radius: 8px;
+      object-fit: contain;
+      display: inline-block;
+      background: #FFFFFF;
+      padding: 8px;
+    }
+    .book-figure figcaption {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+    }
+
+    /* Modal de Imagem Fullscreen */
+    #image-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+      backdrop-filter: blur(12px);
+    }
+    #image-modal.open { display: flex; }
+    #modal-img {
+      max-width: 95vw;
+      max-height: 95vh;
+      border-radius: 8px;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      background: #FFF;
+      padding: 10px;
+    }
+
+    /* Drawer Sumário */
+    #toc-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 380px;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      z-index: 1500;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 20px 0 60px rgba(0, 0, 0, 0.7);
+    }
+    #toc-drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-search-wrap {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .drawer-search-input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      outline: none;
+      font-family: var(--font-ui);
+    }
+    .drawer-search-input:focus { border-color: var(--accent); }
+
+    .drawer-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 10px;
+    }
+    .toc-item {
+      display: block;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      transition: all 0.15s ease;
+    }
+    .toc-item:hover {
+      background: var(--bg-elevated);
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+    .toc-item.lvl-1 {
+      color: var(--text-main);
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 1400;
+      display: none;
+      backdrop-filter: blur(4px);
+    }
+    #overlay.active { display: block; }
+
+    /* Indicador Flutuante */
+    .status-pill {
+      position: fixed;
+      bottom: 20px;
+      right: 24px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      padding: 7px 16px;
+      border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      z-index: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    /* ==========================================================================
+       MARCAÇÕES DE TEXTO (HIGHLIGHTS) & POPOVER FLUTUANTE
+       ========================================================================== */
+    mark.book-highlight {
+      background: rgba(245, 158, 11, 0.32);
+      color: inherit;
+      padding: 2px 4px;
+      border-radius: 4px;
+      border-bottom: 2px solid #F59E0B;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    mark.book-highlight:hover {
+      background: rgba(245, 158, 11, 0.55);
+    }
+    mark.book-highlight.hl-green {
+      background: rgba(16, 185, 129, 0.32);
+      border-bottom-color: #10B981;
+    }
+    mark.book-highlight.hl-green:hover {
+      background: rgba(16, 185, 129, 0.55);
+    }
+    mark.book-highlight.hl-blue {
+      background: rgba(56, 189, 248, 0.32);
+      border-bottom-color: #38BDF8;
+    }
+    mark.book-highlight.hl-blue:hover {
+      background: rgba(56, 189, 248, 0.55);
+    }
+
+    /* Popover Flutuante ao Selecionar Texto */
+    #selection-popover {
+      position: absolute;
+      z-index: 2000;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hover);
+      border-radius: 12px;
+      padding: 6px 10px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px var(--accent-glow);
+      backdrop-filter: blur(12px);
+      transform: translateY(-8px);
+      animation: popoverFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes popoverFadeIn {
+      from { opacity: 0; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(-8px); }
+    }
+    .pop-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      padding: 5px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .pop-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--accent);
+    }
+    .pop-color-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s ease;
+    }
+    .pop-color-dot:hover { transform: scale(1.25); border-color: #FFF; }
+    .dot-amber { background: #F59E0B; }
+    .dot-green { background: #10B981; }
+    .dot-blue { background: #38BDF8; }
+
+    /* ==========================================================================
+       DRAWER DO CADERNO DE ANOTAÇÕES (DIREITA)
+       ========================================================================== */
+    #notes-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 420px;
+      max-width: 90vw;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      z-index: 1500;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -20px 0 60px rgba(0, 0, 0, 0.7);
+    }
+    #notes-drawer.open { transform: translateX(0); }
+
+    .notes-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .notes-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .notes-actions {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .note-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .note-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .note-card.border-amber { border-left: 4px solid #F59E0B; }
+    .note-card.border-green { border-left: 4px solid #10B981; }
+    .note-card.border-blue { border-left: 4px solid #38BDF8; }
+
+    .note-quote {
+      font-family: var(--font-body);
+      font-size: 14.5px;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .note-quote:hover {
+      color: var(--accent);
+    }
+    .note-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 6px;
+    }
+    .note-comment-input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-family: var(--font-ui);
+      padding: 6px 10px;
+      margin-top: 8px;
+      outline: none;
+    }
+    .note-comment-input:focus { border-color: var(--accent); }
+    .note-del-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      transition: color 0.15s;
+    }
+    .note-del-btn:hover { color: #EF4444; }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Progresso Superior -->
+  <div id="progress-container"><div id="progress-bar"></div></div>
+  <div id="overlay"></div>
+
+  <!-- Header Global da Aplicação -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-brand" id="btn-home">
+        <span class="brand-icon">🧠</span>
+        <span class="brand-title">Biblioteca 7D Pro</span>
+      </div>
+      <button class="btn" id="btn-back-shelf" style="display: none;">← Voltar à Estante</button>
+    </div>
+
+    <div class="header-right">
+      <!-- Seletor de Cores Noturnas para a Mente -->
+      <div class="theme-picker" title="Tons Noturnos Especializados para Descanso Visual e Sono">
+        <div class="theme-opt cinza-conforto" data-theme="cinza-conforto" title="🩶 Cinza Conforto (Cinza-Claro sobre Cinza-Escuro & Sans-Serif Moderna)"></div>
+        <div class="theme-opt amber-night" data-theme="amber-night" title="🕯️ Âmbar Noturno (Melatonina Preservada & Zero Luz Azul)"></div>
+        <div class="theme-opt salvia" data-theme="salvia" title="🌿 Sálvia Deep (Calmante para Mente Hiperativa)"></div>
+        <div class="theme-opt charcoal" data-theme="charcoal" title="🌌 Carvão & Pérola (Contraste Focado)"></div>
+        <div class="theme-opt oled" data-theme="oled" title="🖤 OLED Preto Puro"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       VIEW 1: ESTANTE DE LIVROS (INTERFACE APPLE TV SHOWCASE)
+       ========================================================================== -->
+  <main id="view-shelf" class="apple-tv-view">
+    <!-- Apple TV Featured Cinema Showcase -->
+    <section class="apple-hero" id="apple-hero">
+      <div class="apple-hero-backdrop-wrap">
+        <div class="apple-hero-backdrop" id="apple-hero-backdrop"></div>
+        <div class="apple-hero-vignette-left"></div>
+        <div class="apple-hero-vignette-bottom"></div>
+        <div class="apple-hero-ambient-glow" id="apple-hero-glow"></div>
+      </div>
+
+      <!-- Pílula Apple TV Home (Canto Superior Esquerdo) -->
+      <div class="apple-top-pill" id="apple-home-pill" title="Biblioteca 7D Pro">
+        <span class="apple-pill-chevron">‹</span>
+        <span class="apple-pill-icon">🏠</span>
+        <span class="apple-pill-text">Home</span>
+      </div>
+
+      <!-- Conteúdo Hero (Coluna Esquerda) -->
+      <div class="apple-hero-content">
+        <div class="apple-hero-badges" id="apple-hero-badges">
+          <span class="apple-badge-category" id="apple-hero-category">PSICOLOGIA &amp; CORAGEM</span>
+          <span class="apple-badge-rating" id="apple-hero-time">⏱️ 1h 33m</span>
+          <span class="apple-badge-pill" id="apple-hero-difficulty">FÁCIL &amp; DIRETO</span>
+          <span class="apple-badge-pill" id="apple-hero-pages">119 PÁGS</span>
+        </div>
+
+        <h1 class="apple-hero-title" id="apple-hero-title">ANTIMEDO VERSÃO 2.0</h1>
+        
+        <div class="apple-hero-author" id="apple-hero-author">Pablo Marçal • Desbloqueio e Coragem</div>
+        
+        <p class="apple-hero-desc" id="apple-hero-desc">
+          O mais curto da estante. Destrava a coragem, quebra o bloqueio de ler e dá a primeira sensação de conquista rápida antes dos livros densos de poder.
+        </p>
+
+        <div class="apple-hero-actions">
+          <button class="apple-btn-primary" id="apple-hero-btn-play">
+            <span class="play-icon">▶</span>
+            <span id="apple-hero-btn-text">Começar a Ler Agora</span>
+          </button>
+          <button class="apple-btn-secondary" id="apple-hero-btn-toc">
+            <span>📑 Ver Sumário</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dots de Paginação do Carrossel Apple TV -->
+      <div class="apple-hero-dots" id="apple-hero-dots"></div>
+    </section>
+
+    <!-- Filtros de Trilha e Categorias Apple TV -->
+    <div class="apple-filters-wrap">
+      <div class="netflix-filters">
+        <div class="filter-pill active" data-filter="all">🎬 Todos os 12 Livros</div>
+        <div class="filter-pill" data-filter="continue">⏱️ Continuar Lendo</div>
+        <div class="filter-pill" data-filter="sequence">🔥 Trilha Sequencial (1º ao 12º)</div>
+        <div class="filter-pill" data-filter="quick">⚡ Vitórias Rápidas (&lt; 4h)</div>
+        <div class="filter-pill" data-filter="pnl">🧠 PNL &amp; Persuasão</div>
+        <div class="filter-pill" data-filter="mind">🎯 Foco &amp; Emoções</div>
+        <div class="filter-pill" data-filter="mastery">👑 Mestres da Estratégia</div>
+      </div>
+    </div>
+
+    <!-- Container das Fileiras Apple TV -->
+    <div id="shelf-sections-container"></div>
+  </main>
+
+  <!-- ==========================================================================
+       VIEW 2: LEITOR NEURO-ERGONÔMICO (BARRA FLUTUANTE FIXA 100% VISÍVEL)
+       ========================================================================== -->
+  <main id="view-reader">
+    <!-- Barra Superior Fixa que Acompanha Toda a Leitura -->
+    <nav class="reader-subbar" id="reader-subbar">
+      <div class="reader-bar-left">
+        <button class="btn" id="btn-back-reader" title="Voltar para a Estante de Livros">← Estante</button>
+        <button class="btn" id="btn-toc" title="Abrir Sumário do Livro">📑 Sumário</button>
+        
+        <!-- Indicador de Página no Formato Pág. 30/119 (ex: 30/335) -->
+        <div class="reader-page-badge" id="reader-page-badge" title="Página atual / Total de páginas">
+          <span id="subbar-page">Pág. 1/?</span>
+        </div>
+
+        <!-- Foco Mental (O Divisor de Águas) -->
+        <button class="btn" id="btn-focus" title="Isola o parágrafo atual e atenua o resto para absorção profunda">🎯 Foco: OFF</button>
+        
+        <!-- Bionic Reading em Dourado -->
+        <button class="btn" id="btn-bionic" title="Ativa o Bionic Reading em tom âmbar">⚡ Bionic: OFF</button>
+        
+        <!-- Modo Leitura Pura Sem Travamentos -->
+      </div>
+
+      <div class="reader-bar-right">
+        <!-- Seletor de Cores Noturnas Acompanha a Leitura -->
+        <div class="theme-picker" title="Tons Noturnos Especializados para Descanso Visual">
+          <div class="theme-opt cinza-conforto" data-theme="cinza-conforto" title="🩶 Cinza Conforto (Cinza-Claro sobre Cinza-Escuro & Sans-Serif Moderna)"></div>
+          <div class="theme-opt amber-night" data-theme="amber-night" title="🕯️ Âmbar Noturno (Melatonina Preservada & Zero Luz Azul)"></div>
+          <div class="theme-opt salvia" data-theme="salvia" title="🌿 Sálvia Deep (Calmante para Mente Hiperativa)"></div>
+          <div class="theme-opt charcoal" data-theme="charcoal" title="🌌 Carvão & Pérola (Contraste Focado)"></div>
+          <div class="theme-opt oled" data-theme="oled" title="🖤 OLED Preto Puro"></div>
+        </div>
+
+        <!-- Caderno de Anotações & Destaques -->
+        <button class="btn" id="btn-notes" title="Abrir Caderno de Anotações e Frases Marcadas">📝 Anotações (<span id="notes-count">0</span>)</button>
+        <button class="btn" id="btn-font-dec" title="Diminuir fonte">A-</button>
+        <button class="btn" id="btn-font-inc" title="Aumentar fonte">A+</button>
+        <button class="btn" id="btn-fullscreen" title="Tela cheia">⛶ Tela Cheia</button>
+      </div>
+    </nav>
+
+    <!-- Botão de Olhinho Zen / Imersão (Canto Superior Esquerdo, Abaixo da Estante) -->
+    <button id="btn-zen-eye" class="zen-eye-toggle" title="Ocultar / Mostrar Barra de Ferramentas (Modo Imersivo)">👁️</button>
+
+    <!-- Conteúdo do Livro (Texto Fluido + Imagens Preservadas) -->
+    <div class="reader-content-wrap" id="reader-content"></div>
+  </main>
+
+  <!-- Indicador Flutuante de Progresso e Página -->
+  <div class="status-pill" id="status-pill" style="display: none;">
+    <span id="status-page">Pág. 1</span> • <span id="status-percent">0% lido</span>
+  </div>
+
+  <!-- Drawer Lateral do Sumário -->
+  <aside id="toc-drawer">
+    <div class="drawer-header">
+      <span class="drawer-title">📚 Sumário do Livro</span>
+      <button class="btn" id="btn-close-toc">✕</button>
+    </div>
+    <div class="drawer-search-wrap">
+      <input type="text" class="drawer-search-input" id="toc-search" placeholder="Buscar capítulo...">
+    </div>
+    <div class="drawer-list" id="drawer-toc-list"></div>
+  </aside>
+
+  <!-- Drawer Lateral do Caderno de Anotações (Direita) -->
+  <aside id="notes-drawer">
+    <div class="notes-header">
+      <span class="notes-title">📝 Caderno de Anotações & Destaques</span>
+      <button class="btn" id="btn-close-notes">✕</button>
+    </div>
+    <div class="notes-actions">
+      <span id="notes-total-label" style="font-size: 12.5px; color: var(--text-muted); font-family: var(--font-mono);">0 destaques salvos</span>
+      <button class="btn" id="btn-export-notes" style="font-size: 12px; padding: 5px 10px;">📋 Copiar Todas</button>
+    </div>
+    <div class="notes-list" id="notes-list-container"></div>
+  </aside>
+
+  <!-- Popover Flutuante de Seleção de Texto -->
+  <div id="selection-popover">
+    <div style="display: flex; gap: 6px; align-items: center; border-right: 1px solid var(--border); padding-right: 8px;">
+      <div class="pop-color-dot dot-amber" title="Destacar em Âmbar" data-color="amber"></div>
+      <div class="pop-color-dot dot-green" title="Destacar em Verde" data-color="green"></div>
+      <div class="pop-color-dot dot-blue" title="Destacar em Azul" data-color="blue"></div>
+    </div>
+    <button class="pop-btn" id="pop-btn-note">💬 Anotar</button>
+    <button class="pop-btn" id="pop-btn-listen">🔊 Ouvir Trecho</button>
+  </div>
+
+  <!-- Modal de Zoom de Imagens (Fullscreen) -->
+  <div id="image-modal">
+    <img id="modal-img" src="" alt="Imagem ampliada">
+  </div>
+
+  <!-- Banco de Dados Local dos Livros Processados (Dentro de _sistema) -->
+  <script src="_sistema/biblioteca_data/livros_data.js"></script>
+
+  <!-- Script Lógico Central da Biblioteca & Leitor -->
+  <script>
+    // ESTADO GLOBAL
+    const state = {
+      books: window.BIBLIOTECA_LIVROS || [],
+      currentBook: null,
+      fontSize: parseInt(localStorage.getItem('lib_font_size') || '23'),
+      theme: localStorage.getItem('lib_theme') || 'cinza-conforto',
+      bionic: false,
+      focusMode: false,
+      isSpeaking: false,
+      speechIndex: 0
+    };
+
+    // DOM Elements
+    const root = document.documentElement;
+    const body = document.body;
+    const viewShelf = document.getElementById('view-shelf');
+    const viewReader = document.getElementById('view-reader');
+    const booksGrid = document.getElementById('books-grid');
+    const shelfCount = document.getElementById('shelf-count');
+    const btnHome = document.getElementById('btn-home');
+    const btnBackShelf = document.getElementById('btn-back-shelf');
+    const readerContent = document.getElementById('reader-content');
+    const progressBar = document.getElementById('progress-bar');
+    const statusPill = document.getElementById('status-pill');
+    const statusPage = document.getElementById('status-page');
+    const statusPercent = document.getElementById('status-percent');
+    const tocDrawer = document.getElementById('toc-drawer');
+    const notesDrawer = document.getElementById('notes-drawer');
+    const overlay = document.getElementById('overlay');
+    const btnToc = document.getElementById('btn-toc');
+    const btnCloseToc = document.getElementById('btn-close-toc');
+    const drawerTocList = document.getElementById('drawer-toc-list');
+    const tocSearch = document.getElementById('toc-search');
+    const btnNotes = document.getElementById('btn-notes');
+    const btnCloseNotes = document.getElementById('btn-close-notes');
+    const notesListContainer = document.getElementById('notes-list-container');
+    const notesCount = document.getElementById('notes-count');
+    const notesTotalLabel = document.getElementById('notes-total-label');
+    const btnExportNotes = document.getElementById('btn-export-notes');
+    const selectionPopover = document.getElementById('selection-popover');
+    const popBtnNote = document.getElementById('pop-btn-note');
+    const popBtnListen = document.getElementById('pop-btn-listen');
+    const btnBionic = document.getElementById('btn-bionic');
+    const btnFocus = document.getElementById('btn-focus');
+    const btnTts = document.getElementById('btn-tts');
+    const btnFontInc = document.getElementById('btn-font-inc');
+    const btnFontDec = document.getElementById('btn-font-dec');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    const imageModal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-img');
+    const btnZenEye = document.getElementById('btn-zen-eye');
+    if (btnZenEye) {
+      btnZenEye.onclick = () => {
+        document.body.classList.toggle('zen-navbar-hidden');
+      };
+    }
+
+    // Estado de Destaques
+    let currentHighlights = [];
+    let activeSelectedRange = null;
+    let activeSelectedText = '';
+    let activeSelectedPage = '1';
+
+    // Inicialização de Tema
+    root.setAttribute('data-theme', state.theme);
+    root.style.setProperty('--font-size', state.fontSize + 'px');
+
+    document.querySelectorAll('.theme-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const theme = opt.getAttribute('data-theme');
+        root.setAttribute('data-theme', theme);
+        state.theme = theme;
+        localStorage.setItem('lib_theme', theme);
+      });
+    });
+
+    const shelfSectionsContainer = document.getElementById('shelf-sections-container');
+    let currentFilter = 'all';
+
+    // Filtros Netflix
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentFilter = pill.getAttribute('data-filter');
+        renderShelf();
+      });
+    });
+
+    // ==========================================================================
+    // CONTROLE DO HERO SHOWCASE APPLE TV & CARROSSEL CINEMATOGRÁFICO
+    // ==========================================================================
+    let appleHeroFeatured = [];
+    let currentHeroIdx = 0;
+    let heroAutoTimer = null;
+
+    function initAppleHero() {
+      if (!state.books || state.books.length === 0) return;
+
+      // Livros de Destaque para o Hero Apple TV (Top 5 Estratégicos)
+      const featuredIds = [
+        'antimedo_versa_o_2_0',
+        'a_arte_da_guerra_sun_tzu',
+        'mais_esperto_que_o_diabo_o_mist_rio_reve',
+        'pnl_t_cnicas_proibidas_de_persuas_o',
+        'as_48_leis_do_poder'
+      ];
+      appleHeroFeatured = state.books.filter(b => featuredIds.includes(b.id));
+      if (appleHeroFeatured.length === 0) appleHeroFeatured = state.books.slice(0, 5);
+
+      // Renderizar Dots de Paginação
+      const dotsContainer = document.getElementById('apple-hero-dots');
+      if (dotsContainer) {
+        dotsContainer.innerHTML = '';
+        appleHeroFeatured.forEach((book, idx) => {
+          const dot = document.createElement('div');
+          dot.className = `apple-dot ${idx === currentHeroIdx ? 'active' : ''}`;
+          dot.title = book.title;
+          dot.onclick = () => {
+            currentHeroIdx = idx;
+            updateAppleHero(appleHeroFeatured[currentHeroIdx]);
+            resetHeroTimer();
+          };
+          dotsContainer.appendChild(dot);
+        });
+      }
+
+      // Inicializa o primeiro livro no Hero
+      updateAppleHero(appleHeroFeatured[currentHeroIdx]);
+      resetHeroTimer();
+
+      // Pílula Home do Topo
+      const homePill = document.getElementById('apple-home-pill');
+      if (homePill) {
+        homePill.onclick = () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+      }
+    }
+
+    function resetHeroTimer() {
+      if (heroAutoTimer) clearInterval(heroAutoTimer);
+      heroAutoTimer = setInterval(() => {
+        if (viewShelf.style.display !== 'none' && appleHeroFeatured.length > 0) {
+          currentHeroIdx = (currentHeroIdx + 1) % appleHeroFeatured.length;
+          updateAppleHero(appleHeroFeatured[currentHeroIdx]);
+        }
+      }, 7000); // Rotaciona a cada 7 segundos se ocioso
+    }
+
+    function updateAppleHero(book) {
+      if (!book) return;
+
+      const backdrop = document.getElementById('apple-hero-backdrop');
+      const glow = document.getElementById('apple-hero-glow');
+      const cat = document.getElementById('apple-hero-category');
+      const time = document.getElementById('apple-hero-time');
+      const diff = document.getElementById('apple-hero-difficulty');
+      const pgs = document.getElementById('apple-hero-pages');
+      const title = document.getElementById('apple-hero-title');
+      const author = document.getElementById('apple-hero-author');
+      const desc = document.getElementById('apple-hero-desc');
+      const btnPlay = document.getElementById('apple-hero-btn-play');
+      const btnPlayText = document.getElementById('apple-hero-btn-text');
+      const btnToc = document.getElementById('apple-hero-btn-toc');
+
+      if (backdrop && book.cover) {
+        backdrop.style.opacity = '0';
+        setTimeout(() => {
+          backdrop.style.backgroundImage = `url('${book.cover}')`;
+          backdrop.style.opacity = '1';
+        }, 150);
+      }
+
+      if (glow) {
+        const glowColor = book.diffColor || '#F59E0B';
+        glow.style.background = `radial-gradient(circle, ${glowColor}33 0%, transparent 70%)`;
+      }
+
+      const catNames = {
+        quick: 'Nível 1 • Vitórias Rápidas',
+        pnl: 'Nível 2 • PNL & Persuasão',
+        mind: 'Nível 3 • Foco & Emoções',
+        mastery: 'Nível 4 • Mestres do Poder'
+      };
+
+      if (cat) cat.textContent = catNames[book.category] || 'Psicologia & Mente';
+      if (time) time.textContent = `⏱️ ${book.readingTime || '2h'}`;
+      if (diff) {
+        diff.textContent = (book.difficulty || 'Fácil').toUpperCase();
+        diff.style.color = book.diffColor || '#FFFFFF';
+      }
+      if (pgs) pgs.textContent = `${book.totalPages} PÁGS`;
+      if (title) title.textContent = book.title;
+      if (author) author.textContent = `${book.author || 'Edição Especial 7D'} • ${book.order ? 'Recomendado #' + book.order : 'Destaque'}`;
+      if (desc) desc.textContent = book.pedagogicalWhy || book.pedagogicalDesc || 'Leitura fundamental para desenvolver maestria mental, influência e tomada de decisões estratégicas.';
+
+      const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
+      const savedPage = localStorage.getItem(`page_${book.id}`);
+
+      if (btnPlayText) {
+        if (savedProgress > 0) {
+          btnPlayText.textContent = savedPage ? `Continuar Lendo (Pág. ${savedPage})` : 'Continuar Lendo';
+        } else {
+          btnPlayText.textContent = 'Começar a Ler Agora';
+        }
+      }
+
+      if (btnPlay) {
+        btnPlay.onclick = () => openBook(book.id);
+      }
+
+      if (btnToc) {
+        btnToc.onclick = () => {
+          openBook(book.id);
+          toggleToc(true);
+        };
+      }
+
+      // Atualiza Dots Ativos
+      const dots = document.querySelectorAll('.apple-dot');
+      dots.forEach((dot, idx) => {
+        const isCurrent = appleHeroFeatured[idx] && appleHeroFeatured[idx].id === book.id;
+        dot.classList.toggle('active', isCurrent);
+      });
+    }
+
+    // ==========================================================================
+    // RENDERIZAR DASHBOARD APPLE TV (FILEIRAS HORIZONTAIS COM CARDS 16:9)
+    // ==========================================================================
+    function renderShelf() {
+      if (!state.books || state.books.length === 0) return;
+
+      // Ordenar por ordem pedagógica (1 ao 12)
+      state.books.sort((a, b) => (a.order || 99) - (b.order || 99));
+
+      // Inicializa o Hero Showcase se ainda não tiver feito
+      if (appleHeroFeatured.length === 0) {
+        initAppleHero();
+      }
+
+      shelfSectionsContainer.innerHTML = '';
+
+      // 1. Identificar Livros em Andamento para a Fileira "Continuar Lendo"
+      const continueReadingBooks = state.books.filter(b => {
+        const prog = parseFloat(localStorage.getItem(`progress_${b.id}`) || '0');
+        return prog > 0;
+      });
+
+      // Definição das Fileiras Apple TV
+      const sections = [];
+
+      // Fileira 1: Continuar Lendo (Se houver livros iniciados ou se o filtro for continue)
+      if (continueReadingBooks.length > 0 || currentFilter === 'continue') {
+        sections.push({
+          id: 'continue',
+          filterKey: 'continue',
+          icon: '⏱️',
+          title: 'Continuar Lendo (Continue Watching)',
+          desc: 'Retome exatamente da página e do parágrafo onde você parou.',
+          books: continueReadingBooks.length > 0 ? continueReadingBooks : state.books.slice(0, 4)
+        });
+      }
+
+      // Fileira 2: Trilha Sequencial
+      sections.push({
+        id: 'sequence',
+        filterKey: 'sequence',
+        icon: '🔥',
+        title: 'Trilha Sequencial Recomendada (Do 1º ao 12º)',
+        desc: 'A sequência ideal para destravar a leitura, criar dopamina e vencer a procrastinação.',
+        books: state.books
+      });
+
+      // Fileira 3: Vitórias Rápidas
+      sections.push({
+        id: 'quick',
+        filterKey: 'quick',
+        icon: '⚡',
+        title: 'Nível 1 • Vitórias Rápidas (< 4 Horas)',
+        desc: 'Livros curtos e instigantes para terminar em 1 a 2 dias e criar consistência.',
+        books: state.books.filter(b => b.category === 'quick')
+      });
+
+      // Fileira 4: PNL & Persuasão
+      sections.push({
+        id: 'pnl',
+        filterKey: 'pnl',
+        icon: '🧠',
+        title: 'Nível 2 • PNL, Comunicação & Persuasão Prática',
+        desc: 'Decodifique o comportamento humano, leia linguagem corporal e convença em negociações.',
+        books: state.books.filter(b => b.category === 'pnl')
+      });
+
+      // Fileira 5: Foco & Emoções
+      sections.push({
+        id: 'mind',
+        filterKey: 'mind',
+        icon: '🎯',
+        title: 'Nível 3 • Foco Profundo & Inteligência Emocional',
+        desc: 'A ciência da atenção plena, autocontrole da mente e influência psicológica.',
+        books: state.books.filter(b => b.category === 'mind')
+      });
+
+      // Fileira 6: Mestres do Poder
+      sections.push({
+        id: 'mastery',
+        filterKey: 'mastery',
+        icon: '👑',
+        title: 'Nível 4 • Estratégia Máxima & Chefes de Fase do Poder',
+        desc: 'As obras mais densas e transformadoras sobre estratégia, poder e antifragilidade.',
+        books: state.books.filter(b => b.category === 'mastery')
+      });
+
+      // Filtrar seções ativas
+      const activeSections = currentFilter === 'all' 
+        ? sections 
+        : sections.filter(s => s.filterKey === currentFilter);
+
+      activeSections.forEach(sec => {
+        if (!sec.books || sec.books.length === 0) return;
+
+        const secElem = document.createElement('div');
+        secElem.className = 'apple-row-wrap';
+
+        secElem.innerHTML = `
+          <div class="apple-row-header">
+            <div class="apple-row-title"><span>${sec.icon}</span> ${sec.title}</div>
+            <div class="apple-row-count">${sec.books.length} títulos</div>
+          </div>
+          <div class="apple-row-track-container">
+            <button class="apple-nav-arrow prev" title="Rolar para esquerda">‹</button>
+            <div class="apple-row-track"></div>
+            <button class="apple-nav-arrow next" title="Rolar para direita">›</button>
+          </div>
+        `;
+
+        const track = secElem.querySelector('.apple-row-track');
+        const btnPrev = secElem.querySelector('.apple-nav-arrow.prev');
+        const btnNext = secElem.querySelector('.apple-nav-arrow.next');
+
+        btnPrev.onclick = () => {
+          track.scrollBy({ left: -640, behavior: 'smooth' });
+        };
+        btnNext.onclick = () => {
+          track.scrollBy({ left: 640, behavior: 'smooth' });
+        };
+
+        sec.books.forEach(book => {
+          const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
+          const savedPage = localStorage.getItem(`page_${book.id}`);
+
+          const card = document.createElement('div');
+          card.className = 'apple-card';
+          card.setAttribute('data-book-id', book.id);
+
+          const coverSrc = book.cover || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140" fill="%23222"><rect width="100" height="140"/><text x="50%" y="50%" fill="%23888" dominant-baseline="middle" text-anchor="middle">Sem Capa</text></svg>';
+
+          card.innerHTML = `
+            <div class="apple-card-media">
+              <img class="apple-card-backdrop" src="${coverSrc}" alt="" loading="lazy" />
+              <div class="apple-card-poster">
+                <img class="apple-card-cover-img" src="${coverSrc}" alt="${escapeHtml(book.title)}" loading="lazy" />
+              </div>
+              <div class="apple-card-rank">#${book.order || '•'}</div>
+              <div class="apple-card-time">⏱️ ${book.readingTime || '2h'}</div>
+              ${savedProgress > 0 ? `
+                <div class="apple-card-progress-bar">
+                  <div class="apple-card-progress-fill" style="width: ${savedProgress}%"></div>
+                </div>
+              ` : ''}
+            </div>
+            <div class="apple-card-info">
+              <div class="apple-card-title">${escapeHtml(book.title)}</div>
+              <div class="apple-card-subtitle">
+                ${savedProgress > 0 
+                  ? `<span style="color: #FFFFFF; font-weight: 600;">Pág. ${savedPage || '1'}/${book.totalPages}</span> • <span>${Math.round(savedProgress)}% lido</span>` 
+                  : `<span>${escapeHtml(book.difficulty || 'Fácil')}</span> • <span>${book.totalPages} págs</span>`}
+              </div>
+            </div>
+          `;
+
+          // Hover dinâmico Apple TV: atualiza o Hero do topo com suavidade
+          card.onmouseenter = () => {
+            document.querySelectorAll('.apple-card').forEach(c => c.classList.remove('active-preview'));
+            card.classList.add('active-preview');
+            updateAppleHero(book);
+          };
+
+          // Clique abre o leitor
+          card.onclick = () => openBook(book.id);
+
+          track.appendChild(card);
+        });
+
+        shelfSectionsContainer.appendChild(secElem);
+      });
+    }
+
+    // ABRIR LIVRO NO LEITOR FLUIDO PRO
+    function openBook(bookId, pushHistory = true) {
+      const book = state.books.find(b => b.id === bookId);
+      if (!book) return;
+
+      state.currentBook = book;
+      document.title = `${book.title} — Biblioteca 7D`;
+
+      if (pushHistory) {
+        history.pushState({ bookId: book.id }, book.title, '#/livro/' + book.id);
+      }
+
+      const frag = document.createDocumentFragment();
+      
+      const mainH1 = document.createElement('h1');
+      mainH1.className = 'book-heading lvl-1';
+      mainH1.textContent = book.title;
+      frag.appendChild(mainH1);
+
+      book.content.forEach(b => {
+        if (b.type === 'heading') {
+          const h = document.createElement(`h${Math.min(b.lvl + 1, 4)}`);
+          h.id = b.id;
+          h.className = `book-heading lvl-${b.lvl}`;
+          h.textContent = b.title;
+          frag.appendChild(h);
+        } else if (b.type === 'image') {
+          const fig = document.createElement('figure');
+          fig.className = 'book-figure';
+          fig.onclick = () => openImageZoom(b.src);
+          fig.innerHTML = `
+            <img src="${b.src}" alt="Diagrama" loading="lazy">
+            <figcaption>🔍 Clique para ampliar • Pág. ${b.page}</figcaption>
+          `;
+          frag.appendChild(fig);
+        } else if (b.type === 'paragraph') {
+          const p = document.createElement('p');
+          p.className = 'book-p';
+          p.setAttribute('data-page', b.page);
+          p.innerHTML = b.text;
+          
+          // Hover do Modo Foco
+          p.onmouseenter = () => {
+            if (state.focusMode) {
+              document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('active-focus'));
+              p.classList.add('active-focus');
+            }
+          };
+          frag.appendChild(p);
+        }
+      });
+
+      readerContent.innerHTML = '';
+      readerContent.appendChild(frag);
+
+      renderTocDrawer(book.toc);
+      loadAndApplyHighlights(book.id);
+
+      viewShelf.style.display = 'none';
+      viewReader.style.display = 'block';
+      const appHeader = document.querySelector('header.app-header');
+      if (appHeader) appHeader.style.display = 'none';
+      statusPill.style.display = 'flex';
+      if (btnZenEye) btnZenEye.style.display = 'inline-flex';
+
+      localStorage.setItem('mode_shelf', '0');
+      localStorage.setItem('last_active_book_id', book.id);
+
+      const savedPage = localStorage.getItem(`page_${book.id}`) || '1';
+      const savedScroll = parseInt(localStorage.getItem(`scroll_${book.id}`) || '0');
+      const subbarPage = document.getElementById('subbar-page');
+      if (subbarPage) {
+        subbarPage.textContent = `📖 Pág. ${savedPage}/${book.totalPages || '?'}`;
+      }
+
+      const restoreScroll = () => {
+        if (savedPage) {
+          const targetP = document.querySelector(`#reader-content p.book-p[data-page="${savedPage}"]`);
+          if (targetP) {
+            targetP.scrollIntoView({ behavior: 'instant', block: 'start' });
+            window.scrollBy(0, -90); // compensa a barra fixa flutuante
+            updateProgress();
+            return;
+          }
+        }
+        if (savedScroll > 0) {
+          window.scrollTo({ top: savedScroll, behavior: 'instant' });
+        }
+        updateProgress();
+      };
+
+      requestAnimationFrame(() => {
+        restoreScroll();
+        setTimeout(restoreScroll, 120);
+        setTimeout(restoreScroll, 350);
+      });
+    }
+
+    // SUMÁRIO INTERATIVO
+    function renderTocDrawer(toc) {
+      drawerTocList.innerHTML = '';
+      if (!toc || toc.length === 0) {
+        drawerTocList.innerHTML = '<div style="color: var(--text-muted); padding: 20px;">Nenhum sumário estruturado encontrado no PDF.</div>';
+        return;
+      }
+
+      toc.forEach(item => {
+        const a = document.createElement('a');
+        a.href = `#${item.id}`;
+        a.className = `toc-item lvl-${item.lvl}`;
+        a.style.paddingLeft = `${(item.lvl - 1) * 16 + 12}px`;
+        a.textContent = item.title;
+        a.onclick = (e) => {
+          e.preventDefault();
+          const target = document.getElementById(item.id);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            toggleToc(false);
+          }
+        };
+        drawerTocList.appendChild(a);
+      });
+    }
+
+    tocSearch.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#drawer-toc-list .toc-item').forEach(el => {
+        const text = el.textContent.toLowerCase();
+        el.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    });
+
+    function toggleToc(open) {
+      tocDrawer.classList.toggle('open', open);
+      overlay.classList.toggle('active', open);
+    }
+    btnToc.onclick = () => toggleToc(true);
+    btnCloseToc.onclick = () => toggleToc(false);
+    overlay.onclick = () => toggleToc(false);
+
+    // ==========================================================================
+    // SISTEMA DE MARCAÇÕES & CADERNO DE ANOTAÇÕES
+    // ==========================================================================
+    function loadAndApplyHighlights(bookId) {
+      try {
+        const raw = localStorage.getItem(`highlights_${bookId}`);
+        currentHighlights = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        currentHighlights = [];
+      }
+      renderNotesDrawer();
+      applyHighlightsToDOM();
+    }
+
+    function saveHighlights() {
+      if (!state.currentBook) return;
+      localStorage.setItem(`highlights_${state.currentBook.id}`, JSON.stringify(currentHighlights));
+      renderNotesDrawer();
+    }
+
+    function applyHighlightsToDOM() {
+      if (!currentHighlights || currentHighlights.length === 0) return;
+      const paras = document.querySelectorAll('#reader-content p.book-p');
+      currentHighlights.forEach(hl => {
+        for (let p of paras) {
+          if (p.textContent.includes(hl.text) && !p.querySelector(`mark[data-hl-id="${hl.id}"]`)) {
+            const escaped = escapeRegex(hl.text);
+            const markHtml = `<mark class="book-highlight hl-${hl.color}" data-hl-id="${hl.id}" title="Clique para ver no Caderno de Anotações">${escapeHtml(hl.text)}</mark>`;
+            p.innerHTML = p.innerHTML.replace(new RegExp(escaped, 'g'), markHtml);
+            break;
+          }
+        }
+      });
+
+      document.querySelectorAll('mark.book-highlight').forEach(mark => {
+        mark.onclick = (e) => {
+          e.stopPropagation();
+          const hlId = mark.getAttribute('data-hl-id');
+          toggleNotes(true);
+          const card = document.getElementById(`card-${hlId}`);
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.style.borderColor = 'var(--accent)';
+            setTimeout(() => card.style.borderColor = '', 2000);
+          }
+        };
+      });
+    }
+
+    function renderNotesDrawer() {
+      notesCount.textContent = currentHighlights.length;
+      notesTotalLabel.textContent = `${currentHighlights.length} destaques salvos`;
+      notesListContainer.innerHTML = '';
+
+      if (currentHighlights.length === 0) {
+        notesListContainer.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 40px 10px;">
+            <div style="font-size: 32px; margin-bottom: 12px;">🖍️</div>
+            <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Nenhum destaque ainda</div>
+            <div style="font-size: 13px;">Selecione qualquer trecho com o mouse para marcar e guardar suas notas aqui!</div>
+          </div>
+        `;
+        return;
+      }
+
+      currentHighlights.forEach((hl, idx) => {
+        const card = document.createElement('div');
+        card.className = `note-card border-${hl.color}`;
+        card.id = `card-${hl.id}`;
+
+        card.innerHTML = `
+          <div class="note-quote" title="Clique para ir até o trecho no livro">"${escapeHtml(hl.text)}"</div>
+          <div class="note-meta">
+            <span>Pág. ${hl.page} • ${hl.date || 'Hoje'}</span>
+            <button class="note-del-btn" title="Excluir destaque">🗑️ Remover</button>
+          </div>
+          <input type="text" class="note-comment-input" placeholder="Adicionar nota ou reflexão pessoal..." value="${escapeHtml(hl.note || '')}" />
+        `;
+
+        card.querySelector('.note-quote').onclick = () => {
+          const mark = document.querySelector(`mark[data-hl-id="${hl.id}"]`);
+          if (mark) {
+            mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            mark.style.outline = '3px solid var(--accent)';
+            setTimeout(() => mark.style.outline = '', 2500);
+            toggleNotes(false);
+          }
+        };
+
+        const input = card.querySelector('.note-comment-input');
+        input.onchange = (e) => {
+          hl.note = e.target.value;
+          saveHighlights();
+        };
+
+        card.querySelector('.note-del-btn').onclick = () => {
+          if (confirm('Deseja remover esta anotação?')) {
+            currentHighlights.splice(idx, 1);
+            saveHighlights();
+            const mark = document.querySelector(`mark[data-hl-id="${hl.id}"]`);
+            if (mark) {
+              const parent = mark.parentNode;
+              parent.replaceChild(document.createTextNode(mark.textContent), mark);
+              parent.normalize();
+            }
+          }
+        };
+
+        notesListContainer.appendChild(card);
+      });
+    }
+
+    function toggleNotes(open) {
+      notesDrawer.classList.toggle('open', open);
+      overlay.classList.toggle('active', open);
+    }
+    btnNotes.onclick = () => toggleNotes(true);
+    btnCloseNotes.onclick = () => toggleNotes(false);
+
+    btnExportNotes.onclick = () => {
+      if (currentHighlights.length === 0) {
+        alert('Nenhuma anotação para copiar.');
+        return;
+      }
+      let exportText = `# Caderno de Anotações — ${state.currentBook.title}\n\n`;
+      currentHighlights.forEach(hl => {
+        exportText += `> "${hl.text}"\n`;
+        exportText += `— Pág. ${hl.page}`;
+        if (hl.note) exportText += ` | Nota: ${hl.note}`;
+        exportText += `\n\n`;
+      });
+      navigator.clipboard.writeText(exportText).then(() => {
+        alert('Todas as anotações foram copiadas para a Área de Transferência! Pode colar no Notion, Obsidian ou Bloco de Notas.');
+      });
+    };
+
+    // CAPTURA DA SELEÇÃO DO MOUSE & POPOVER
+    document.addEventListener('selectionchange', () => {
+      if (viewReader.style.display === 'none') return;
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.toString().trim().length < 2) {
+        if (!selectionPopover.matches(':hover')) {
+          selectionPopover.style.display = 'none';
+        }
+        return;
+      }
+
+      const text = sel.toString().trim();
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      
+      const common = range.commonAncestorContainer;
+      if (!readerContent.contains(common.nodeType === 1 ? common : common.parentNode)) {
+        selectionPopover.style.display = 'none';
+        return;
+      }
+
+      activeSelectedRange = range.cloneRange();
+      activeSelectedText = text;
+
+      let pElem = range.startContainer;
+      while (pElem && pElem !== readerContent && (!pElem.classList || !pElem.classList.contains('book-p'))) {
+        pElem = pElem.parentNode;
+      }
+      activeSelectedPage = pElem && pElem.getAttribute('data-page') ? pElem.getAttribute('data-page') : '1';
+
+      const popTop = window.scrollY + rect.top - 52;
+      const popLeft = Math.max(16, Math.min(window.innerWidth - 320, window.scrollX + rect.left + (rect.width / 2) - 130));
+
+      selectionPopover.style.top = `${popTop}px`;
+      selectionPopover.style.left = `${popLeft}px`;
+      selectionPopover.style.display = 'flex';
+    });
+
+    document.querySelectorAll('.pop-color-dot').forEach(dot => {
+      dot.onclick = () => {
+        const color = dot.getAttribute('data-color');
+        createHighlight(color);
+      };
+    });
+
+    popBtnNote.onclick = () => {
+      createHighlight('amber', true);
+    };
+
+    popBtnListen.onclick = () => {
+      if (activeSelectedText) {
+        speakTextDirect(activeSelectedText);
+        selectionPopover.style.display = 'none';
+        window.getSelection().removeAllRanges();
+      }
+    };
+
+    function createHighlight(color, openNote = false) {
+      if (!activeSelectedText || !state.currentBook) return;
+
+      const hlId = 'hl_' + Date.now();
+      const newHl = {
+        id: hlId,
+        text: activeSelectedText,
+        color: color,
+        page: activeSelectedPage,
+        note: '',
+        date: new Date().toLocaleDateString('pt-BR')
+      };
+
+      currentHighlights.push(newHl);
+      saveHighlights();
+
+      try {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+          const mark = document.createElement('mark');
+          mark.className = `book-highlight hl-${color}`;
+          mark.setAttribute('data-hl-id', hlId);
+          mark.textContent = activeSelectedText;
+          mark.onclick = (e) => {
+            e.stopPropagation();
+            toggleNotes(true);
+          };
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          range.insertNode(mark);
+        }
+      } catch (e) {
+        applyHighlightsToDOM();
+      }
+
+      selectionPopover.style.display = 'none';
+      window.getSelection().removeAllRanges();
+
+      if (openNote) {
+        toggleNotes(true);
+        setTimeout(() => {
+          const card = document.getElementById(`card-${hlId}`);
+          if (card) {
+            const input = card.querySelector('.note-comment-input');
+            if (input) input.focus();
+          }
+        }, 300);
+      }
+    }
+
+    function escapeRegex(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // ==========================================================================
+    // MODO FOCO CEREBRAL (FOCUS MODE)
+    // ==========================================================================
+    btnFocus.onclick = () => {
+      state.focusMode = !state.focusMode;
+      btnFocus.classList.toggle('active', state.focusMode);
+      body.classList.toggle('focus-mode-active', state.focusMode);
+      btnFocus.textContent = state.focusMode ? '🎯 Foco Mental: ON' : '🎯 Foco Mental: OFF';
+    };
+
+    // BIONIC READING EM TOM ÂMBAR
+    function bionicText(text) {
+      return text.replace(/\b([a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+)\b/g, (match, word) => {
+        if (word.length <= 1) return word;
+        let mid = Math.ceil(word.length * 0.45);
+        if (word.length <= 3) mid = 1;
+        return '<b class="bionic-lead">' + word.slice(0, mid) + '</b>' + word.slice(mid);
+      });
+    }
+
+    const originalParas = new WeakMap();
+
+    btnBionic.onclick = () => {
+      state.bionic = !state.bionic;
+      btnBionic.classList.toggle('active', state.bionic);
+      btnBionic.textContent = state.bionic ? '⚡ Bionic: ON' : '⚡ Bionic: OFF';
+
+      const paras = document.querySelectorAll('#reader-content p.book-p');
+      paras.forEach(p => {
+        if (!originalParas.has(p)) {
+          originalParas.set(p, p.innerHTML);
+        }
+        if (state.bionic) {
+          p.innerHTML = bionicText(p.textContent);
+        } else {
+          p.innerHTML = originalParas.get(p);
+        }
+      });
+    };
+
+    // CONTROLES DE TIPOGRAFIA
+    btnFontInc.onclick = () => {
+      if (state.fontSize < 34) {
+        state.fontSize += 2;
+        root.style.setProperty('--font-size', state.fontSize + 'px');
+        localStorage.setItem('lib_font_size', state.fontSize);
+      }
+    };
+    btnFontDec.onclick = () => {
+      if (state.fontSize > 14) {
+        state.fontSize -= 2;
+        root.style.setProperty('--font-size', state.fontSize + 'px');
+        localStorage.setItem('lib_font_size', state.fontSize);
+      }
+    };
+
+    btnFullscreen.onclick = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+
+    // ==========================================================================
+    // LEITURA EM VOZ ALTA (VOZ NEURAL DO LOCUTOR DE ESTÚDIO)
+    // ==========================================================================
+    const voiceAudio = new Audio();
+    const VOICE_SERVER_URL = window.location.origin.includes('http') ? window.location.origin : 'http://127.0.0.1:5055';
+    let isServerOnline = false;
+
+    async function checkVoiceServer() {
+      try {
+        const res = await fetch(`${VOICE_SERVER_URL}/health`, { signal: AbortSignal.timeout(1500) });
+        if (res.ok) {
+          isServerOnline = true;
+          const badge = document.getElementById('voice-badge');
+          if (badge) {
+            badge.style.display = 'inline-flex';
+            badge.style.background = 'rgba(34,197,94,0.18)';
+            badge.style.color = '#4ADE80';
+            badge.style.borderColor = 'rgba(34,197,94,0.35)';
+            badge.innerHTML = '● Estúdio HD';
+          }
+        }
+      } catch (e) {
+        isServerOnline = false;
+        const badge = document.getElementById('voice-badge');
+        if (badge) {
+          badge.style.background = 'rgba(234,179,8,0.15)';
+          badge.style.color = '#FACC15';
+          badge.style.borderColor = 'rgba(234,179,8,0.3)';
+          badge.innerHTML = '○ Voz Padrão';
+        }
+      }
+    }
+    // Web Edition: 100% nativo sem servidor
+    // Web Edition: Zero requisições de fundo
+
+    async function speakNext() {
+      const paras = document.querySelectorAll('#reader-content p.book-p');
+      if (!state.isSpeaking || state.speechIndex >= paras.length) {
+        stopSpeech();
+        return;
+      }
+
+      const p = paras[state.speechIndex];
+      paras.forEach(el => el.classList.remove('tts-active'));
+      p.classList.add('tts-active');
+      p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const text = p.textContent.trim();
+      if (!text || text.length < 2) {
+        state.speechIndex++;
+        speakNext();
+        return;
+      }
+
+      if (isServerOnline) {
+        const audioUrl = `${VOICE_SERVER_URL}/tts?voice=pablo&text=${encodeURIComponent(text)}`;
+        if (btnTts) btnTts.textContent = '⏳ Pablo Sintetizando...';
+        voiceAudio.src = audioUrl;
+        voiceAudio.onplay = () => {
+          if (btnTts && state.isSpeaking) {
+            btnTts.textContent = '⏸ Pausar Pablo';
+          }
+        };
+        voiceAudio.onended = () => {
+          if (state.isSpeaking) {
+            state.speechIndex++;
+            speakNext();
+          }
+        };
+        voiceAudio.onerror = (e) => {
+          console.warn('Aguardando áudio do Pablo...', e);
+          if (btnTts) btnTts.textContent = '⏳ Pablo Gerando...';
+          setTimeout(() => {
+            if (state.isSpeaking) speakNext();
+          }, 2500);
+        };
+
+        // Pré-carregamento suave do próximo parágrafo na GPU
+        if (state.speechIndex + 1 < paras.length) {
+          const nextP = paras[state.speechIndex + 1];
+          const nextText = nextP ? nextP.textContent.trim() : '';
+          if (nextText && nextText.length >= 2) {
+            fetch(`${VOICE_SERVER_URL}/tts?voice=pablo&text=${encodeURIComponent(nextText)}`).catch(() => {});
+          }
+        }
+
+        try {
+          await voiceAudio.play();
+        } catch (err) {
+          console.log('Aguardando reprodução...');
+        }
+      } else {
+        if (btnTts) btnTts.textContent = '⚠️ Servidor de Voz Offline';
+      }
+    }
+
+    function stopSpeech() {
+      voiceAudio.pause();
+      voiceAudio.currentTime = 0;
+      state.isSpeaking = false;
+      btnTts.classList.remove('active');
+      btnTts.textContent = '🔊 Ouvir Pablo Marçal';
+      document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-active'));
+    }
+
+    btnTts.onclick = () => {
+      if (state.isSpeaking) {
+        stopSpeech();
+      } else {
+        const paras = Array.from(document.querySelectorAll('#reader-content p.book-p'));
+        let foundIdx = paras.findIndex(p => p.getBoundingClientRect().top >= 90);
+        state.speechIndex = Math.max(0, foundIdx);
+        state.isSpeaking = true;
+        btnTts.classList.add('active');
+        btnTts.textContent = '⏸ Pausar';
+        speakNext();
+      }
+    };
+
+    async function speakTextDirect(text) {
+      stopSpeech();
+      const selectedVoice = document.getElementById('voice-select')?.value || 'pablo';
+      if (isServerOnline) {
+        voiceAudio.src = `${VOICE_SERVER_URL}/tts?voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
+        try {
+          await voiceAudio.play();
+        } catch (e) {
+          fallbackSpeech(text);
+        }
+      } else {
+        fallbackSpeech(text);
+      }
+    }
+
+    // ZOOM DE IMAGEM
+    function openImageZoom(src) {
+      modalImg.src = src;
+      imageModal.classList.add('open');
+    }
+    imageModal.onclick = () => {
+      imageModal.classList.remove('open');
+      modalImg.src = '';
+    };
+
+    // VOLTAR PARA A ESTANTE
+    function goToShelf(pushHistory = true) {
+      stopSpeech();
+      selectionPopover.style.display = 'none';
+      toggleNotes(false);
+      toggleToc(false);
+      viewReader.style.display = 'none';
+      viewShelf.style.display = 'block';
+      
+      const appHeader = document.querySelector('header.app-header');
+      if (appHeader) appHeader.style.display = 'flex';
+
+      btnBackShelf.style.display = 'none';
+      statusPill.style.display = 'none';
+      if (btnZenEye) btnZenEye.style.display = 'none';
+      document.body.classList.remove('zen-navbar-hidden');
+      document.title = 'Biblioteca 7D — Leitor Pro & Absorção Mental';
+      localStorage.setItem('mode_shelf', '1');
+      
+      if (pushHistory) {
+        history.pushState(null, 'Biblioteca 7D', '#/');
+      }
+
+      renderShelf();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    btnBackShelf.onclick = () => goToShelf(true);
+    btnHome.onclick = () => goToShelf(true);
+    document.getElementById('btn-back-reader')?.addEventListener('click', () => goToShelf(true));
+
+    // Suporte ao Botão Voltar do Navegador e do Mouse
+    window.addEventListener('popstate', (e) => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#/livro/')) {
+        const bookId = hash.replace('#/livro/', '');
+        openBook(bookId, false);
+      } else {
+        goToShelf(false);
+      }
+    });
+
+    // SCROLL & PROGRESSO EM TEMPO REAL
+    function updateProgress() {
+      if (!state.currentBook || viewReader.style.display === 'none') return;
+
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min(100, Math.max(0, (scrollY / docHeight) * 100)) : 0;
+
+      progressBar.style.width = `${progress}%`;
+      statusPercent.textContent = `${Math.round(progress)}% lido`;
+
+      const paras = document.querySelectorAll('#reader-content p.book-p');
+      let currentPg = '1';
+      for (let p of paras) {
+        const rect = p.getBoundingClientRect();
+        if (rect.top >= 60 && rect.top <= window.innerHeight * 0.6) {
+          const pg = p.getAttribute('data-page');
+          if (pg) {
+            currentPg = pg;
+            break;
+          }
+        }
+      }
+
+      const totalPgs = state.currentBook.totalPages || 1;
+      const pageText = `Pág. ${currentPg}/${totalPgs}`;
+      statusPage.textContent = pageText;
+
+      const subbarPage = document.getElementById('subbar-page');
+      if (subbarPage) {
+        subbarPage.textContent = `📖 ${pageText}`;
+      }
+
+      localStorage.setItem(`scroll_${state.currentBook.id}`, scrollY);
+      localStorage.setItem(`page_${state.currentBook.id}`, currentPg);
+      localStorage.setItem(`progress_${state.currentBook.id}`, progress);
+      localStorage.setItem('last_active_book_id', state.currentBook.id);
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+
+    // Atalho de Teclado: Tecla P ou Espaço para Pausar/Reproduzir; Tecla Z para Modo Imersivo (Ocultar Barra)
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (viewReader.style.display !== 'none') {
+        if (e.code === 'KeyP' || (e.code === 'Space' && e.target === document.body)) {
+          if (e.code === 'Space') e.preventDefault();
+          btnTts.click();
+        } else if (e.code === 'KeyZ' || e.code === 'KeyH') {
+          document.body.classList.toggle('zen-navbar-hidden');
+        }
+      }
+    });
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
+    }
+
+    // Roteamento Inicial por URL Hash ou Retomada Automática do Livro e Página
+    const initialHash = window.location.hash;
+    const lastBookId = localStorage.getItem('last_active_book_id');
+    const isShelfMode = localStorage.getItem('mode_shelf') === '1';
+
+    if (initialHash && initialHash.startsWith('#/livro/')) {
+      const bId = initialHash.replace('#/livro/', '');
+      openBook(bId, false);
+    } else if (!isShelfMode && lastBookId && state.books.some(b => b.id === lastBookId)) {
+      openBook(lastBookId, false);
+    } else {
+      renderShelf();
+    }
+  </script>
+</body>
+</html>

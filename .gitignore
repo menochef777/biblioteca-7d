@@ -1,0 +1,6 @@
+# Arquivos pesados e locais
+*.mp4
+*.pdf
+_sistema/cache_audio/
+__pycache__/
+*.bat
