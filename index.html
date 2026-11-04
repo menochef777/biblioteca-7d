@@ -845,6 +845,29 @@
 
     
     /* Botão de Narração em Áudio & Destaque de Fala */
+    
+    .btn-audio-speed {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      color: var(--text-main) !important;
+      font-weight: 700 !important;
+      font-size: 12px !important;
+      padding: 5px 9px !important;
+      border-radius: 8px !important;
+      cursor: pointer;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.2s ease !important;
+      min-width: 44px;
+    }
+    .btn-audio-speed:hover,
+    .btn-audio-speed:active {
+      background: rgba(245, 158, 11, 0.2) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+
     .btn-audio-play {
       background: rgba(245, 158, 11, 0.12) !important;
       border: 1px solid rgba(245, 158, 11, 0.35) !important;
@@ -1620,6 +1643,11 @@
         padding: 6px 9px;
         font-size: 12px;
       }
+            .reader-subbar #btn-reader-speed {
+        padding: 6px 7px !important;
+        font-size: 11px !important;
+        min-width: 38px !important;
+      }
       .reader-subbar #btn-reader-audio {
         padding: 6px 9px;
         font-size: 12px;
@@ -1894,6 +1922,7 @@
         <button class="btn btn-back-primary" id="btn-back-reader" title="Voltar para a Estante de Livros">← Voltar à Estante</button>
         <button class="btn" id="btn-toc" title="Abrir Sumário do Livro">📑 Sumário</button>
         <button class="btn btn-audio-play" id="btn-reader-audio" title="Ouvir Narração com Voz Solene">🔊 Ouvir</button>
+        <button class="btn btn-audio-speed" id="btn-reader-speed" title="Ajustar velocidade da voz (1.0x, 1.25x, 1.5x, 1.75x, 2.0x, 0.85x)">1.0x</button>
         
         <!-- Indicador de Página no Formato Pág. 30/119 -->
         <div class="reader-page-badge" id="reader-page-badge" title="Página atual / Total de páginas">
@@ -2091,6 +2120,16 @@
       });
     }
 
+    
+    const btnReaderSpeed = document.getElementById('btn-reader-speed');
+    if (btnReaderSpeed) {
+      btnReaderSpeed.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        audioEngine.cycleSpeed();
+      });
+    }
+
     const btnReaderAudio = document.getElementById('btn-reader-audio');
     if (btnReaderAudio) {
       btnReaderAudio.addEventListener('click', (e) => {
@@ -2111,6 +2150,7 @@
     let currentHighlights = [];
     let activeSelectedRange = null;
     let activeSelectedText = '';
+    let activeSelectedP = null;
     let activeSelectedPage = '1';
 
     // Gerenciador Centralizado de Temas (Zero localStorage)
@@ -2646,16 +2686,23 @@
       audioCache: new Map(),
       customText: null,
       activeRequestId: 0,
+      playbackRate: 1.0,
+      speeds: [1.0, 1.25, 1.5, 1.75, 2.0, 0.85],
 
       init() {
         if (!this.audioPlayer) {
           this.audioPlayer = new Audio();
           this.audioPlayer.preload = 'auto';
+          this.audioPlayer.playbackRate = this.playbackRate;
+          this.audioPlayer.defaultPlaybackRate = this.playbackRate;
 
           this.audioPlayer.onended = () => {
             if (!this.isSpeaking) return;
             if (this.customText) {
-              this.stop();
+              // Concluiu o trecho selecionado, continua a narração fluindo a partir do próximo parágrafo!
+              this.customText = null;
+              this.currentParaIdx++;
+              this.playCurrentParagraph();
               return;
             }
             this.currentParaIdx++;
@@ -2676,6 +2723,34 @@
 
       initVoices() {
         this.init();
+      },
+
+      cycleSpeed() {
+        const currIdx = this.speeds.indexOf(this.playbackRate);
+        const nextIdx = (currIdx + 1) % this.speeds.length;
+        this.setSpeed(this.speeds[nextIdx]);
+      },
+
+      setSpeed(rate) {
+        this.playbackRate = rate;
+        if (this.audioPlayer) {
+          this.audioPlayer.playbackRate = rate;
+          this.audioPlayer.defaultPlaybackRate = rate;
+        }
+        const btn = document.getElementById('btn-reader-speed');
+        if (btn) {
+          btn.textContent = rate + 'x';
+          btn.title = `Velocidade atual: ${rate}x. Clique para alterar`;
+        }
+      },
+
+      getRateString() {
+        if (this.playbackRate === 1.25) return '+15%';
+        if (this.playbackRate === 1.5) return '+35%';
+        if (this.playbackRate === 1.75) return '+55%';
+        if (this.playbackRate === 2.0) return '+75%';
+        if (this.playbackRate === 0.85) return '-15%';
+        return '-2%';
       },
 
       unlockMobileAudio() {
@@ -2702,8 +2777,9 @@
       async fetchAudioBlob(text) {
         const cleaned = this.cleanText(text);
         if (!cleaned) return null;
-        if (this.audioCache.has(cleaned)) {
-          return this.audioCache.get(cleaned);
+        const cacheKey = `${cleaned}_${this.playbackRate}`;
+        if (this.audioCache.has(cacheKey)) {
+          return this.audioCache.get(cacheKey);
         }
 
         try {
@@ -2713,7 +2789,7 @@
             body: JSON.stringify({
               text: cleaned,
               voice: 'pt-BR-AntonioNeural',
-              rate: '-2%',
+              rate: this.getRateString(),
               pitch: '-3Hz'
             })
           });
@@ -2721,7 +2797,7 @@
           if (resp.ok) {
             const blob = await resp.blob();
             const url = URL.createObjectURL(blob);
-            this.audioCache.set(cleaned, url);
+            this.audioCache.set(cacheKey, url);
             return url;
           }
         } catch (err) {
@@ -2735,7 +2811,8 @@
         const p = this.paragraphs[idx];
         if (!p) return;
         const text = this.cleanText(p.textContent);
-        if (text && !this.audioCache.has(text)) {
+        const cacheKey = `${text}_${this.playbackRate}`;
+        if (text && !this.audioCache.has(cacheKey)) {
           this.fetchAudioBlob(text).catch(() => {});
         }
       },
@@ -2754,6 +2831,18 @@
           return r.bottom > offset && r.top < window.innerHeight;
         });
 
+        if (startIdx === -1) {
+          let minDistance = Infinity;
+          this.paragraphs.forEach((p, idx) => {
+            const r = p.getBoundingClientRect();
+            const dist = Math.abs(r.top - 100);
+            if (dist < minDistance) {
+              minDistance = dist;
+              startIdx = idx;
+            }
+          });
+        }
+
         if (startIdx === -1) startIdx = 0;
         this.currentParaIdx = startIdx;
         this.isSpeaking = true;
@@ -2766,16 +2855,59 @@
         this.playCurrentParagraph();
       },
 
+      startFromParagraph(p) {
+        this.init();
+        this.stop();
+        this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
+        const idx = this.paragraphs.indexOf(p);
+        this.currentParaIdx = idx !== -1 ? idx : 0;
+        this.isSpeaking = true;
+        this.isPaused = false;
+        this.updateBtnUI();
+        this.unlockMobileAudio();
+        this.playCurrentParagraph();
+      },
+
       speakCustomSelection(text, startParagraph) {
         this.init();
         this.stop();
 
         this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
+        if (this.paragraphs.length === 0) return;
+
+        let foundIdx = -1;
         if (startParagraph) {
-          const idx = this.paragraphs.indexOf(startParagraph);
-          this.currentParaIdx = idx !== -1 ? idx : 0;
-          document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-reading-now'));
-          startParagraph.classList.add('tts-reading-now');
+          foundIdx = this.paragraphs.indexOf(startParagraph);
+        }
+
+        // Se startParagraph não estava na lista direta, busca pelo texto da seleção
+        if (foundIdx === -1 && text) {
+          const snippet = this.cleanText(text).slice(0, 30);
+          if (snippet) {
+            foundIdx = this.paragraphs.findIndex(p => this.cleanText(p.textContent).includes(snippet));
+          }
+        }
+
+        // Se ainda não encontrou, busca o parágrafo visível mais próximo do topo da tela
+        if (foundIdx === -1) {
+          let minDistance = Infinity;
+          this.paragraphs.forEach((p, idx) => {
+            const r = p.getBoundingClientRect();
+            const dist = Math.abs(r.top - 100);
+            if (dist < minDistance) {
+              minDistance = dist;
+              foundIdx = idx;
+            }
+          });
+        }
+
+        this.currentParaIdx = foundIdx !== -1 ? foundIdx : 0;
+        const currentElement = this.paragraphs[this.currentParaIdx];
+
+        document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-reading-now'));
+        if (currentElement) {
+          currentElement.classList.add('tts-reading-now');
+          currentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         this.customText = text;
@@ -2797,6 +2929,8 @@
 
         if (audioUrl) {
           this.audioPlayer.src = audioUrl;
+          this.audioPlayer.playbackRate = this.playbackRate;
+          this.audioPlayer.defaultPlaybackRate = this.playbackRate;
           this.audioPlayer.play().catch(e => {
             console.warn('Erro ao reproduzir áudio neural selecionado:', e);
             this.fallbackSpeechSynthesisText(text);
@@ -2843,6 +2977,8 @@
 
         if (audioUrl) {
           this.audioPlayer.src = audioUrl;
+          this.audioPlayer.playbackRate = this.playbackRate;
+          this.audioPlayer.defaultPlaybackRate = this.playbackRate;
           this.audioPlayer.play().catch(e => {
             console.warn('Erro ao reproduzir áudio neural do parágrafo:', e);
             this.fallbackSpeechSynthesisParagraph();
@@ -2857,10 +2993,14 @@
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(this.cleanText(text));
         u.lang = 'pt-BR';
-        u.rate = 0.94;
+        u.rate = this.playbackRate;
         u.pitch = 0.52;
         u.onend = () => {
-          if (this.isSpeaking) this.stop();
+          if (this.isSpeaking) {
+            this.customText = null;
+            this.currentParaIdx++;
+            this.playCurrentParagraph();
+          }
         };
         u.onerror = () => {
           if (this.isSpeaking) this.stop();
@@ -2878,7 +3018,7 @@
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(this.cleanText(p.textContent));
         u.lang = 'pt-BR';
-        u.rate = 0.94;
+        u.rate = this.playbackRate;
         u.pitch = 0.52;
         u.onend = () => {
           if (this.isSpeaking) {
@@ -2912,6 +3052,7 @@
         this.isPaused = false;
         this.updateBtnUI();
         if (this.audioPlayer && this.audioPlayer.src && !this.audioPlayer.ended) {
+          this.audioPlayer.playbackRate = this.playbackRate;
           this.audioPlayer.play().catch(e => {
             console.warn('Erro ao retomar áudio:', e);
             this.playCurrentParagraph();
@@ -3153,6 +3294,7 @@
 
       activeSelectedRange = range.cloneRange();
       activeSelectedText = text;
+      activeSelectedP = p;
       activeSelectedPage = p.getAttribute('data-page') || '1';
 
       const rect = range.getBoundingClientRect();
@@ -3176,22 +3318,31 @@
 
     const popBtnListen = document.getElementById('pop-btn-listen');
     if (popBtnListen) {
-      popBtnListen.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      const handleListen = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         const textToSpeak = activeSelectedText;
-        const currentP = activeSelectedRange ? 
-          (activeSelectedRange.commonAncestorContainer.nodeType === 1 ? 
-            activeSelectedRange.commonAncestorContainer.closest('p.book-p') : 
-            activeSelectedRange.commonAncestorContainer.parentElement?.closest('p.book-p')) : null;
+        let currentP = activeSelectedP;
+
+        if (!currentP && activeSelectedRange) {
+          const container = activeSelectedRange.commonAncestorContainer;
+          currentP = container.nodeType === 1 ? container.closest('p.book-p') : container.parentElement?.closest('p.book-p');
+        }
 
         if (selectionPopover) selectionPopover.style.display = 'none';
         window.getSelection()?.removeAllRanges();
 
         if (textToSpeak && textToSpeak.trim().length > 0) {
           audioEngine.speakCustomSelection(textToSpeak, currentP);
+        } else if (currentP) {
+          audioEngine.startFromParagraph(currentP);
         }
       };
+
+      popBtnListen.addEventListener('pointerdown', handleListen, { passive: false });
+      popBtnListen.addEventListener('click', handleListen);
     }
 
     if (popBtnNote) {
