@@ -1994,9 +1994,7 @@
       root.setAttribute('data-theme', theme);
       state.theme = theme;
       localStorage.setItem('lib_theme', theme);
-      document.querySelectorAll('.sheet-theme-item').forEach(el => {
-        el.classList.toggle('active', el.getAttribute('data-theme') === theme);
-      });
+
     }
 
     // Gerenciador Centralizado de Tipografia
@@ -2004,7 +2002,7 @@
       state.fontSize = Math.max(14, Math.min(36, newSize));
       root.style.setProperty('--font-size', state.fontSize + 'px');
       localStorage.setItem('lib_font_size', state.fontSize);
-      if (sheetFontSizeLabel) sheetFontSizeLabel.textContent = state.fontSize + 'px';
+      
     }
 
     // Inicialização de Tema
@@ -2017,43 +2015,6 @@
         applyTheme(theme);
       });
     });
-
-    document.querySelectorAll('.sheet-theme-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const theme = item.getAttribute('data-theme');
-        applyTheme(theme);
-      });
-    });
-
-    function toggleMobileSettings(open) {
-      if (!mobileSettingsSheet) return;
-      mobileSettingsSheet.classList.toggle('open', open);
-      overlay.classList.toggle('active', open);
-      if (open && sheetFontSizeLabel) {
-        sheetFontSizeLabel.textContent = state.fontSize + 'px';
-      }
-    }
-
-    if (btnMobileAa) btnMobileAa.onclick = () => toggleMobileSettings(true);
-    if (dockBtnSettings) dockBtnSettings.onclick = () => toggleMobileSettings(true);
-    if (btnCloseSheet) btnCloseSheet.onclick = () => toggleMobileSettings(false);
-    if (sheetFontInc) sheetFontInc.onclick = () => updateFontSize(state.fontSize + 2);
-    if (sheetFontDec) sheetFontDec.onclick = () => updateFontSize(state.fontSize - 2);
-    if (sheetFullscreen) {
-      sheetFullscreen.onclick = () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-          document.exitFullscreen().catch(() => {});
-        }
-      };
-    }
-    if (sheetZen) {
-      sheetZen.onclick = () => {
-        document.body.classList.toggle('zen-navbar-hidden');
-        toggleMobileSettings(false);
-      };
-    }
 
     const shelfSectionsContainer = document.getElementById('shelf-sections-container');
     let currentFilter = 'all';
@@ -2512,15 +2473,15 @@
     function toggleToc(open) {
       tocDrawer.classList.toggle('open', open);
       overlay.classList.toggle('active', open);
-      if (open) toggleMobileSettings(false);
+      
     }
     btnToc.onclick = () => toggleToc(true);
-    if (dockBtnToc) dockBtnToc.onclick = () => toggleToc(true);
+    
     btnCloseToc.onclick = () => toggleToc(false);
     overlay.onclick = () => {
       toggleToc(false);
       toggleNotes(false);
-      toggleMobileSettings(false);
+      
     };
 
     // ==========================================================================
@@ -2574,10 +2535,7 @@
 
     function renderNotesDrawer() {
       notesCount.textContent = currentHighlights.length;
-      if (dockNotesCount) {
-        dockNotesCount.textContent = currentHighlights.length;
-        dockNotesCount.style.display = currentHighlights.length > 0 ? 'inline-block' : 'none';
-      }
+      
       notesTotalLabel.textContent = `${currentHighlights.length} destaques salvos`;
       notesListContainer.innerHTML = '';
 
@@ -2642,10 +2600,10 @@
     function toggleNotes(open) {
       notesDrawer.classList.toggle('open', open);
       overlay.classList.toggle('active', open);
-      if (open) toggleMobileSettings(false);
+      
     }
     btnNotes.onclick = () => toggleNotes(true);
-    if (dockBtnNotes) dockBtnNotes.onclick = () => toggleNotes(true);
+    
     btnCloseNotes.onclick = () => toggleNotes(false);
 
     btnExportNotes.onclick = () => {
@@ -2715,13 +2673,7 @@
       createHighlight('amber', true);
     };
 
-    popBtnListen.onclick = () => {
-      if (activeSelectedText) {
-        speakTextDirect(activeSelectedText);
-        selectionPopover.style.display = 'none';
-        window.getSelection().removeAllRanges();
-      }
-    };
+
 
     function createHighlight(color, openNote = false) {
       if (!activeSelectedText || !state.currentBook) return;
