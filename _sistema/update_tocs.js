@@ -128,3 +128,4 @@ Object.keys(tocs).forEach(bookId => {
 
 fs.writeFileSync(dataFile, 'window.BIBLIOTECA_LIVROS = ' + JSON.stringify(books, null, 2) + ';\n', 'utf8');
 console.log('Successfully wrote updated livros_data.js!');
+

@@ -3,9 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+      <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <script>
+    // Evita BFCache (Memória Congelada do Android Chrome)
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted) {
+        window.location.reload();
+      }
+    });
+    // Desregistra qualquer Service Worker residual no Android
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var i = 0; i < regs.length; i++) {
+          regs[i].unregister();
+        }
+      });
+    }
+  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#141416">
@@ -1930,13 +1946,13 @@
   </div>
 
   <!-- Banco de Dados Local dos Livros Processados (Dentro de _sistema) -->
-  <script src="_sistema/biblioteca_data/livros_data.js?v=20261104_1725"></script>
+  <script src="_sistema/biblioteca_data/livros_data.js?v=20261104_android_v3"></script>
 
   <!-- Script Lógico Central da Biblioteca & Leitor -->
   <script>
     // ESTADO GLOBAL
     const state = {
-      books: window.BIBLIOTECA_LIVROS || [],
+      books: (window.BIBLIOTECA_LIVROS && window.BIBLIOTECA_LIVROS.length > 0) ? window.BIBLIOTECA_LIVROS : [],
       currentBook: null,
       fontSize: parseInt(localStorage.getItem('lib_font_size') || '23'),
       theme: localStorage.getItem('lib_theme') || 'cinza-conforto'
@@ -2188,7 +2204,17 @@
     // RENDERIZAR DASHBOARD APPLE TV (FILEIRAS HORIZONTAIS COM CARDS 16:9)
     // ==========================================================================
     function renderShelf() {
-      if (!state.books || state.books.length === 0) return;
+      if (!state.books || state.books.length === 0) {
+        if (window.BIBLIOTECA_LIVROS && window.BIBLIOTECA_LIVROS.length > 0) {
+          state.books = window.BIBLIOTECA_LIVROS;
+        } else {
+          if (shelfSectionsContainer) {
+            shelfSectionsContainer.innerHTML = '<div style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px; font-size: 16px;">Carregando os 14 livros...</div>';
+          }
+          setTimeout(renderShelf, 250);
+          return;
+        }
+      }
 
       // Ordenar por ordem pedagógica (1 ao 12)
       state.books.sort((a, b) => (a.order || 99) - (b.order || 99));

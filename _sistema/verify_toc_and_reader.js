@@ -75,3 +75,4 @@ for (const match of scriptMatches) {
 }
 
 console.log('🎉 TUDO PRONTO E VALIDADO COM SUCESSO!');
+
