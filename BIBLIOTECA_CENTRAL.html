@@ -129,288 +129,716 @@
     }
 
     /* Header Global (Apple TV Floating Overlay) */
-    /* ==========================================================================
-       ESTANTE ULTRA-LEVE & GRID RESPONSIVO DE LIVROS (SAAS PRO)
-       ========================================================================== */
     header.app-header {
-      position: sticky;
+      position: absolute;
       top: 0;
       left: 0;
       right: 0;
       z-index: 500;
-      background: rgba(14, 14, 18, 0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-bottom: none;
+      padding: 24px 64px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      justify-content: flex-end;
+      pointer-events: none;
     }
+
+    .header-left {
+      display: none;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
     .app-brand {
       display: flex;
       align-items: center;
       gap: 10px;
-      text-decoration: none;
       cursor: pointer;
+      user-select: none;
     }
     .brand-icon {
       font-size: 22px;
-      line-height: 1;
+      filter: drop-shadow(0 0 10px var(--accent));
     }
     .brand-title {
       font-size: 17px;
       font-weight: 800;
-      color: var(--text-main);
       letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .brand-tag {
-      font-size: 10px;
-      font-weight: 800;
-      background: var(--accent);
+
+    .btn {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .btn:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-hover);
+      color: #FFF;
+      transform: translateY(-1px);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), #B45309);
       color: #000;
-      padding: 2px 7px;
-      border-radius: 99px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 4px 14px var(--accent-glow);
     }
-    .header-info-badge {
+    .btn.primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+    .btn.active {
+      background: var(--accent) !important;
+      color: #000 !important;
+      border-color: var(--accent) !important;
+      font-weight: 800;
+      box-shadow: 0 0 16px var(--accent-glow), 0 0 8px var(--accent);
+      animation: pulseBtnActive 1.8s infinite ease-in-out;
+    }
+    @keyframes pulseBtnActive {
+      0%, 100% { box-shadow: 0 0 10px var(--accent-glow); transform: scale(1); }
+      50% { box-shadow: 0 0 20px var(--accent); transform: scale(1.02); }
+    }
+
+    /* Seletor de Temas Noturnos */
+    .theme-picker {
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 3px 6px;
+      gap: 5px;
+    }
+    .theme-opt {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: transform 0.15s ease;
+    }
+    .theme-opt:hover { transform: scale(1.15); }
+    .theme-opt.cinza-conforto { background: #1E1E22; border-color: #4ADE80; }
+    .theme-opt.amber-night { background: #13100D; border-color: #F59E0B; }
+    .theme-opt.salvia { background: #0D1311; border-color: #10B981; }
+    .theme-opt.charcoal { background: #0E1116; border-color: #38BDF8; }
+    .theme-opt.oled { background: #000000; border-color: #71717A; }
+
+    /* ==========================================================================
+       DASHBOARD APPLE TV (CINEMATIC SHOWCASE & 16:9 FOCUS ENGINE)
+       ========================================================================== */
+    #view-shelf {
+      max-width: 100%;
+      margin: 0;
+      padding: 0 0 100px 0;
+      background: #070709;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Hero Showcase Apple TV (Topo Cinematográfico com Destaque 3D) */
+    .apple-hero {
+      position: relative;
+      width: 100%;
+      min-height: 420px;
+      padding: 40px 64px 28px;
+      overflow: hidden;
+      box-sizing: border-box;
+      background: #070709;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .apple-hero-ambient-glow {
+      position: absolute;
+      top: 10%;
+      right: 15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%);
+      filter: blur(80px);
+      z-index: 1;
+      pointer-events: none;
+      transition: background 0.6s ease;
+    }
+
+    /* Layout de 2 Colunas do Hero: Texto na Esquerda e Capa 3D na Direita */
+    .apple-hero-main-layout {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 48px;
+    }
+
+    .apple-hero-content {
+      flex: 1;
+      max-width: 600px;
+      margin-bottom: 0;
+      animation: appleHeroFadeIn 0.5s ease-out;
+    }
+
+    .apple-hero-cover-showcase {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+      padding-right: 32px;
+    }
+
+    .apple-hero-book-3d {
+      position: relative;
+      transform: perspective(1000px) rotateY(-15deg) rotateX(4deg);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    .apple-hero-book-3d:hover {
+      transform: perspective(1000px) rotateY(-4deg) rotateX(0deg) scale(1.05);
+    }
+
+    .apple-hero-book-3d img {
+      width: 240px;
+      height: 350px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      box-shadow: -18px 22px 50px rgba(0, 0, 0, 0.9), 0 0 40px var(--accent-glow);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: opacity 0.25s ease;
+      background: #18181C;
+    }
+
+    .book-3d-spine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 12px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 50%, rgba(0,0,0,0.4) 100%);
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      pointer-events: none;
+    }
+
+    .book-3d-shine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(125deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.06) 35%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Pílula Apple TV Home (Canto Superior Esquerdo) */
+    .apple-top-pill {
+      position: absolute;
+      top: 26px;
+      left: 64px;
+      z-index: 20;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 7px 18px 7px 13px;
+      border-radius: 9999px;
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-top-pill:hover {
+      background: rgba(255, 255, 255, 0.24);
+      transform: scale(1.04);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .apple-pill-chevron {
+      font-size: 16px;
+      opacity: 0.65;
+      line-height: 1;
+    }
+    .apple-pill-icon {
+      font-size: 15px;
+    }
+
+    /* Conteúdo Hero (Coluna Esquerda) */
+    .apple-hero-content {
+      position: relative;
+      z-index: 10;
+      max-width: 620px;
+      margin-bottom: 24px;
+      animation: appleHeroFadeIn 0.5s ease-out;
+    }
+    @keyframes appleHeroFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .apple-hero-badges {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+    .apple-badge-category {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+    .apple-badge-rating {
       font-size: 12px;
-      color: var(--text-muted);
+      font-weight: 700;
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+    .apple-badge-pill {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 9px;
+      border-radius: 4px;
       font-weight: 600;
     }
 
-    /* Banner de Boas-Vindas Leve & Direto */
-    .shelf-hero-banner {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 32px 24px 16px;
-      text-align: center;
-    }
-    .shelf-hero-title {
-      font-size: clamp(1.6rem, 4vw, 2.3rem);
+    .apple-hero-title {
+      font-size: clamp(2.3rem, 4.6vw, 3.6rem);
       font-weight: 900;
-      color: var(--text-main);
-      letter-spacing: -0.03em;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      color: #FFFFFF;
       margin-bottom: 8px;
-    }
-    .shelf-hero-title span {
-      color: var(--accent);
-    }
-    .shelf-hero-subtitle {
-      font-size: clamp(13px, 2vw, 15px);
-      color: var(--text-muted);
-      max-width: 620px;
-      margin: 0 auto 20px;
-      line-height: 1.5;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+      text-transform: uppercase;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     }
 
-    /* Filtros Rápidos de Categoria */
-    .shelf-filters {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
+    .apple-hero-author {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.88);
       margin-bottom: 12px;
     }
-    .filter-pill {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 12.5px;
+
+    .apple-hero-desc {
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.74);
+      margin-bottom: 24px;
+      max-width: 520px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    .apple-hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Botão Principal Apple TV: Branco puro com texto preto e cantos Apple */
+    .apple-btn-primary {
+      background: #FFFFFF;
+      color: #000000;
+      border: none;
+      font-size: 15.5px;
       font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 99px;
+      letter-spacing: -0.01em;
+      padding: 13px 26px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 28px rgba(255, 255, 255, 0.22);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      font-family: var(--font-ui);
+    }
+    .apple-btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 14px 36px rgba(255, 255, 255, 0.4);
+      background: #F4F4F6;
+    }
+    .apple-btn-primary:active {
+      transform: scale(0.98);
+    }
+    .apple-btn-primary .play-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    /* Botão Secundário Apple TV: Vidro translúcido */
+    .apple-btn-secondary {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 22px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      user-select: none;
+      font-family: var(--font-ui);
+    }
+    .apple-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: scale(1.03);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Dots de Paginação do Carrossel Apple TV */
+    .apple-hero-dots {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .apple-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.32);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-dot.active {
+      width: 24px;
+      border-radius: 3px;
+      background: #FFFFFF;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Filtros abaixo do Hero */
+    .apple-filters-wrap {
+      padding: 0 64px;
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+    .netflix-filters {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .netflix-filters::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
       user-select: none;
     }
     .filter-pill:hover {
-      border-color: var(--accent);
-      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.16);
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
     }
     .filter-pill.active {
-      background: var(--accent);
-      color: #000000;
-      border-color: var(--accent);
-      box-shadow: 0 2px 10px var(--accent-glow);
+      background: #FFFFFF !important;
+      color: #000000 !important;
+      border-color: #FFFFFF !important;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
     }
 
-    /* Grid Moderno de Todos os 14 Livros */
-    .books-grid-layout {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      gap: 22px;
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 16px 24px 80px;
-    }
-
-    .book-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      cursor: pointer;
+    /* Fileiras Apple TV (Horizontal Rows) */
+    .apple-row-wrap {
+      margin-bottom: 42px;
+      padding: 0 64px;
       position: relative;
     }
-    .book-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--accent);
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.7), 0 0 16px var(--accent-glow);
+    .apple-row-header {
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .apple-row-title {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .apple-row-count {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: var(--font-mono);
     }
 
-    .book-card-cover-wrap {
+    /* Trilho de Scroll Horizontal Apple TV */
+    .apple-row-track-container {
+      position: relative;
+    }
+    .apple-row-track {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding: 14px 6px 28px 4px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .apple-row-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Botões de Navegação das Fileiras */
+    .apple-nav-arrow {
+      position: absolute;
+      top: 36%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(18, 18, 22, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 25;
+      font-size: 22px;
+      line-height: 1;
+      opacity: 0;
+      transition: all 0.22s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      user-select: none;
+    }
+    .apple-row-track-container:hover .apple-nav-arrow {
+      opacity: 0.95;
+    }
+    .apple-nav-arrow:hover {
+      opacity: 1 !important;
+      transform: translateY(-50%) scale(1.14);
+      background: #FFFFFF;
+      color: #000000;
+    }
+    .apple-nav-arrow.prev { left: -18px; }
+    .apple-nav-arrow.next { right: -18px; }
+
+    /* CARD APPLE TV 16:9 WIDESCREEN CINEMATOGRÁFICO */
+    .apple-card {
+      width: 290px;
+      flex-shrink: 0;
+      cursor: pointer;
+      text-decoration: none;
+      user-select: none;
+      position: relative;
+    }
+
+    .apple-card-media {
       position: relative;
       width: 100%;
-      aspect-ratio: 2 / 3;
-      background: #141418;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
       overflow: hidden;
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .book-card-cover-wrap img {
+
+    /* Efeito Foco / Hover Apple TV (Parallax Scale & Specular Focus Ring) */
+    .apple-card:hover .apple-card-media,
+    .apple-card.active-preview .apple-card-media {
+      transform: scale(1.08) translateY(-6px);
+      outline: 3px solid rgba(255, 255, 255, 0.95);
+      border-color: transparent;
+      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.95), 0 0 30px rgba(255, 255, 255, 0.25);
+      z-index: 10;
+    }
+
+    .apple-card-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
-      transition: transform 0.25s ease;
-    }
-    .book-card:hover .book-card-cover-wrap img {
-      transform: scale(1.03);
+      filter: blur(18px) brightness(0.35) saturate(1.4);
+      transform: scale(1.25);
     }
 
-    .book-card-badge {
+    .apple-card-poster {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      z-index: 2;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.72) 100%);
+    }
+
+    .apple-card-cover-img {
+      max-height: 86%;
+      max-width: 44%;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.85);
+      transition: transform 0.3s ease;
+    }
+    .apple-card:hover .apple-card-cover-img {
+      transform: scale(1.06) rotate(-1deg);
+    }
+
+    .apple-card-rank {
       position: absolute;
       top: 10px;
-      left: 10px;
-      background: var(--accent);
-      color: #000000;
-      font-weight: 900;
+      left: 12px;
+      z-index: 5;
       font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      font-weight: 900;
+      color: #000;
+      background: #FFFFFF;
+      padding: 2px 7px;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       letter-spacing: 0.04em;
-      z-index: 2;
-    }
-    .book-card-time {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(8px);
-      color: #FFFFFF;
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      z-index: 2;
     }
 
-    .book-card-progress {
+    .apple-card-time {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      z-index: 5;
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFFFFF;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-family: var(--font-mono);
+    }
+
+    /* Barra de Progresso no Rodapé do Card (Estilo Apple TV) */
+    .apple-card-progress-bar {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
       height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      z-index: 3;
+      background: rgba(255, 255, 255, 0.22);
+      z-index: 6;
+      overflow: hidden;
     }
-    .book-card-progress-fill {
+    .apple-card-progress-fill {
       height: 100%;
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
+      background: #FFFFFF;
+      box-shadow: 0 0 8px #FFFFFF;
+      transition: width 0.3s ease;
     }
 
-    .book-card-body {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      flex: 1;
+    /* Tipografia Abaixo do Card */
+    .apple-card-info {
+      padding-top: 10px;
     }
-    .book-card-title {
-      font-size: 14px;
+    .apple-card-title {
+      font-size: 14.5px;
       font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.35;
-      margin-bottom: 4px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      min-height: 38px;
-    }
-    .book-card-author {
-      font-size: 11.5px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+      color: #F5F5F7;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-bottom: 3px;
+      transition: color 0.2s ease;
     }
-    .book-card-btn {
-      margin-top: auto;
-      width: 100%;
-      background: var(--accent);
-      color: #000000;
-      font-weight: 800;
+    .apple-card:hover .apple-card-title {
+      color: #FFFFFF;
+    }
+    .apple-card-subtitle {
       font-size: 12.5px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
+      color: rgba(255, 255, 255, 0.52);
+      display: flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
-      transition: all 0.18s ease;
-    }
-    .book-card-btn:hover {
-      opacity: 0.95;
-      box-shadow: 0 2px 10px var(--accent-glow);
     }
 
-    @media (max-width: 768px) {
-      .shelf-hero-banner {
-        padding: 20px 16px 10px;
-      }
-      .shelf-hero-title {
-        font-size: 1.5rem;
-      }
-      .shelf-hero-subtitle {
-        font-size: 12.5px;
-        margin-bottom: 14px;
-      }
-      .filter-pill {
-        padding: 6px 12px;
-        font-size: 11.5px;
-      }
-      .books-grid-layout {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        padding: 10px 12px 60px;
-      }
-      .book-card-body {
-        padding: 10px;
-      }
-      .book-card-title {
-        font-size: 12.5px;
-        min-height: 34px;
-      }
-      .book-card-author {
-        font-size: 10.5px;
-        margin-bottom: 8px;
-      }
-      .book-card-btn {
-        padding: 7px 10px;
-        font-size: 11px;
-      }
-    }
-
+    /* ==========================================================================
+       VIEW: LEITOR NEURO-ERGONÔMICO
+       ========================================================================== */
     #view-reader { display: none; }
 
     .reader-subbar {
@@ -1022,6 +1450,110 @@
       .app-brand .brand-title {
         font-size: 15px;
       }
+
+      /* Apple TV Hero no Celular com Capa 3D Prominente */
+      .apple-hero {
+        min-height: auto;
+        height: auto;
+        padding: 56px 16px 20px;
+      }
+      .apple-hero-main-layout {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+        margin-top: 14px;
+      }
+      .apple-hero-cover-showcase {
+        padding-right: 0;
+        margin-bottom: 4px;
+        order: -1; /* Exibe a foto do livro no topo do destaque no celular */
+      }
+      .apple-hero-book-3d {
+        transform: perspective(800px) rotateY(-8deg);
+      }
+      .apple-hero-book-3d img {
+        width: 145px;
+        height: 215px;
+        box-shadow: -10px 14px 30px rgba(0, 0, 0, 0.85), 0 0 25px var(--accent-glow);
+      }
+      .apple-hero-badges {
+        justify-content: center;
+      }
+      .apple-top-pill {
+        top: 14px;
+        left: 14px;
+        padding: 6px 14px 6px 10px;
+        font-size: 12px;
+      }
+      .apple-hero-content {
+        max-width: 100%;
+        margin-bottom: 12px;
+      }
+      .apple-hero-title {
+        font-size: clamp(1.4rem, 6.2vw, 1.9rem);
+        line-height: 1.15;
+        margin-bottom: 6px;
+      }
+      .apple-hero-author {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      .apple-hero-desc {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 18px;
+        -webkit-line-clamp: 2;
+      }
+      .apple-hero-actions {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+      }
+      .apple-btn-primary, .apple-btn-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 13px 20px;
+        font-size: 14.5px;
+      }
+      .apple-hero-dots {
+        bottom: 10px;
+      }
+
+      /* Filtros e Fileiras no Celular */
+      .apple-filters-wrap {
+        padding: 0 16px;
+        margin-top: 12px;
+        margin-bottom: 16px;
+      }
+      .filter-pill {
+        padding: 7px 14px;
+        font-size: 12px;
+      }
+      .apple-row-wrap {
+        padding: 0 16px;
+        margin-bottom: 26px;
+      }
+      .apple-row-title {
+        font-size: 17px;
+      }
+      .apple-nav-arrow {
+        display: none !important;
+      }
+      .apple-row-track {
+        gap: 14px;
+        padding: 6px 2px 18px;
+        scroll-padding: 16px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .apple-card {
+        width: 220px;
+        scroll-snap-align: start;
+      }
+      .apple-card-title {
+        font-size: 13px;
+      }
+      .apple-card-subtitle {
         font-size: 11px;
       }
 
@@ -1216,40 +1748,84 @@
   </header>
 
   <!-- ==========================================================================
-       VIEW 1: ESTANTE DE LIVROS (INTERFACE SAAS LEVE E RESPONSIVA)
+       VIEW 1: ESTANTE DE LIVROS (INTERFACE APPLE TV SHOWCASE)
        ========================================================================== -->
-  <main id="view-shelf">
-    <!-- Header Global Fixo -->
-    <header class="app-header">
-      <div class="app-brand" id="btn-home" title="Voltar ao início da Biblioteca">
-        <span class="brand-icon">🧠</span>
-        <span class="brand-title">Biblioteca 7D</span>
-        <span class="brand-tag">14 Livros</span>
-      </div>
-      <div class="header-info-badge" id="shelf-count">14 Obras de Maestria</div>
-    </header>
+  <main id="view-shelf" class="apple-tv-view">
+    <!-- Apple TV Featured Cinema Showcase -->
+    <section class="apple-hero" id="apple-hero">
+      <div class="apple-hero-ambient-glow" id="apple-hero-glow"></div>
 
-    <!-- Banner Superior Limpo e Leve -->
-    <section class="shelf-hero-banner">
-      <h1 class="shelf-hero-title">Biblioteca <span>7D</span></h1>
-      <p class="shelf-hero-subtitle">
-        Acervo completo com os 14 livros clássicos de coragem, persuasão, inteligência emocional e estratégia máxima. Escolha qualquer livro abaixo para ler imediatamente.
-      </p>
-
-      <!-- Filtros Rápidos de Trilha -->
-      <div class="shelf-filters" id="shelf-filters">
-        <button class="filter-pill active" data-filter="all">🎬 Todos os 14 Livros</button>
-        <button class="filter-pill" data-filter="quick">⚡ Vitórias Rápidas (&lt; 4h)</button>
-        <button class="filter-pill" data-filter="pnl">🧠 PNL &amp; Persuasão</button>
-        <button class="filter-pill" data-filter="mind">🎯 Foco &amp; Emoções</button>
-        <button class="filter-pill" data-filter="mastery">👑 Mestres da Estratégia</button>
+      <!-- Pílula Apple TV Home (Canto Superior Esquerdo) -->
+      <div class="apple-top-pill" id="apple-home-pill" title="Biblioteca 7D Pro">
+        <span class="apple-pill-chevron">‹</span>
+        <span class="apple-pill-icon">🧠</span>
+        <span class="apple-pill-text">Biblioteca 7D</span>
       </div>
+
+      <!-- Layout Central do Hero: Texto & Livro 3D Prominente -->
+      <div class="apple-hero-main-layout">
+        <!-- Conteúdo Hero (Coluna Esquerda) -->
+        <div class="apple-hero-content">
+          <div class="apple-hero-badges" id="apple-hero-badges">
+            <span class="apple-badge-category" id="apple-hero-category">PSICOLOGIA &amp; CORAGEM</span>
+            <span class="apple-badge-rating" id="apple-hero-time">⏱️ 1h 33m</span>
+            <span class="apple-badge-pill" id="apple-hero-difficulty">FÁCIL &amp; DIRETO</span>
+            <span class="apple-badge-pill" id="apple-hero-pages">119 PÁGS</span>
+          </div>
+
+          <h1 class="apple-hero-title" id="apple-hero-title">ANTIMEDO VERSÃO 2.0</h1>
+          
+          <div class="apple-hero-author" id="apple-hero-author">Pablo Marçal • Desbloqueio e Coragem</div>
+          
+          <p class="apple-hero-desc" id="apple-hero-desc">
+            O mais curto da estante. Destrava a coragem, quebra o bloqueio de ler e dá a primeira sensação de conquista rápida antes dos livros densos de poder.
+          </p>
+
+          <div class="apple-hero-actions">
+            <button class="apple-btn-primary" id="apple-hero-btn-play">
+              <span class="play-icon">▶</span>
+              <span id="apple-hero-btn-text">Começar a Ler Agora</span>
+            </button>
+            <button class="apple-btn-secondary" id="apple-hero-btn-toc">
+              <span>📑 Ver Sumário</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Capa 3D Editorial do Livro -->
+        <div class="apple-hero-cover-showcase">
+          <div class="apple-hero-book-3d" id="apple-hero-book-3d" title="Clique para começar a ler este livro">
+            <img id="apple-hero-cover-img" src="_sistema/biblioteca_data/covers/cover_antimedo_versa_o_2_0.png" alt="Capa do Livro" />
+            <div class="book-3d-spine"></div>
+            <div class="book-3d-shine"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dots de Paginação do Carrossel Apple TV -->
+      <div class="apple-hero-dots" id="apple-hero-dots"></div>
     </section>
 
-    <!-- Grid com TODOS os 14 Livros Imediatamente Visíveis -->
-    <div class="books-grid-layout" id="books-grid-container"></div>
+    <!-- Filtros de Trilha e Categorias Apple TV -->
+    <div class="apple-filters-wrap">
+      <div class="netflix-filters">
+        <div class="filter-pill active" data-filter="all">🎬 Todos os 14 Livros</div>
+        <div class="filter-pill" data-filter="continue">⏱️ Continuar Lendo</div>
+        <div class="filter-pill" data-filter="sequence">🔥 Trilha Sequencial (1º ao 14º)</div>
+        <div class="filter-pill" data-filter="quick">⚡ Vitórias Rápidas (&lt; 4h)</div>
+        <div class="filter-pill" data-filter="pnl">🧠 PNL &amp; Persuasão</div>
+        <div class="filter-pill" data-filter="mind">🎯 Foco &amp; Emoções</div>
+        <div class="filter-pill" data-filter="mastery">👑 Mestres da Estratégia</div>
+      </div>
+    </div>
+
+    <!-- Container das Fileiras Apple TV -->
+    <div id="shelf-sections-container"></div>
   </main>
 
+  <!-- ==========================================================================
+       VIEW 2: LEITOR NEURO-ERGONÔMICO (BARRA FLUTUANTE FIXA 100% VISÍVEL)
+       ========================================================================== -->
   <main id="view-reader">
     <!-- Barra Superior Fixa que Acompanha Toda a Leitura -->
     <nav class="reader-subbar" id="reader-subbar">
@@ -1479,65 +2055,336 @@
       };
     }
 
-    // RENDERIZAÇÃO ULTRA-LEVE DO GRID COM TODOS OS 14 LIVROS
-    function renderShelf() {
+    const shelfSectionsContainer = document.getElementById('shelf-sections-container');
+    let currentFilter = 'all';
+
+    // Filtros Netflix
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentFilter = pill.getAttribute('data-filter');
+        renderShelf();
+      });
+    });
+
+    // ==========================================================================
+    // CONTROLE DO HERO SHOWCASE APPLE TV & CARROSSEL CINEMATOGRÁFICO
+    // ==========================================================================
+    let appleHeroFeatured = [];
+    let currentHeroIdx = 0;
+    let heroAutoTimer = null;
+
+    function initAppleHero() {
       if (!state.books || state.books.length === 0) return;
 
-      state.books.sort((a, b) => (a.order || 99) - (b.order || 99));
+      // Livros de Destaque para o Hero Apple TV (Top 5 Estratégicos)
+      const featuredIds = [
+        'antimedo_versa_o_2_0',
+        'a_arte_da_guerra_sun_tzu',
+        'mais_esperto_que_o_diabo_o_mist_rio_reve',
+        'pnl_t_cnicas_proibidas_de_persuas_o',
+        'as_48_leis_do_poder'
+      ];
+      appleHeroFeatured = state.books.filter(b => featuredIds.includes(b.id));
+      if (appleHeroFeatured.length === 0) appleHeroFeatured = state.books.slice(0, 5);
 
-      const grid = document.getElementById('books-grid-container');
-      if (!grid) return;
-      grid.innerHTML = '';
+      // Renderizar Dots de Paginação
+      const dotsContainer = document.getElementById('apple-hero-dots');
+      if (dotsContainer) {
+        dotsContainer.innerHTML = '';
+        appleHeroFeatured.forEach((book, idx) => {
+          const dot = document.createElement('div');
+          dot.className = `apple-dot ${idx === currentHeroIdx ? 'active' : ''}`;
+          dot.title = book.title;
+          dot.onclick = () => {
+            currentHeroIdx = idx;
+            updateAppleHero(appleHeroFeatured[currentHeroIdx]);
+            resetHeroTimer();
+          };
+          dotsContainer.appendChild(dot);
+        });
+      }
 
-      const filteredBooks = currentFilter === 'all'
-        ? state.books
-        : state.books.filter(b => b.category === currentFilter);
+      // Inicializa o primeiro livro no Hero
+      updateAppleHero(appleHeroFeatured[currentHeroIdx]);
+      resetHeroTimer();
 
-      filteredBooks.forEach(book => {
-        const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
-        const savedPage = localStorage.getItem(`page_${book.id}`);
-
-        const card = document.createElement('div');
-        card.className = 'book-card';
-        card.setAttribute('data-book-id', book.id);
-
-        const coverSrc = book.cover || '_sistema/biblioteca_data/covers/cover_antimedo_versa_o_2_0.png';
-
-        card.innerHTML = `
-          <div class="book-card-cover-wrap">
-            <span class="book-card-badge">#${book.order || '•'}</span>
-            <span class="book-card-time">⏱️ ${book.readingTime || '2h'}</span>
-            <img src="${coverSrc}" alt="${escapeHtml(book.title)}" loading="lazy" />
-            ${savedProgress > 0 ? `
-              <div class="book-card-progress">
-                <div class="book-card-progress-fill" style="width: ${savedProgress}%"></div>
-              </div>
-            ` : ''}
-          </div>
-          <div class="book-card-body">
-            <h3 class="book-card-title">${escapeHtml(book.title)}</h3>
-            <div class="book-card-author">${escapeHtml(book.author || 'Edição 7D')} • ${book.totalPages} págs</div>
-            <button class="book-card-btn">
-              ${savedProgress > 0 ? `Continuar (Pág. ${savedPage || '1'})` : 'Ler Livro →'}
-            </button>
-          </div>
-        `;
-
-        card.onclick = () => openBook(book.id);
-        grid.appendChild(card);
-      });
-
-      // Atualiza botões de filtro
-      document.querySelectorAll('#shelf-filters .filter-pill').forEach(pill => {
-        pill.onclick = () => {
-          document.querySelectorAll('#shelf-filters .filter-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          currentFilter = pill.getAttribute('data-filter');
-          renderShelf();
+      // Pílula Home do Topo
+      const homePill = document.getElementById('apple-home-pill');
+      if (homePill) {
+        homePill.onclick = () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         };
+      }
+    }
+
+    function resetHeroTimer() {
+      if (heroAutoTimer) clearInterval(heroAutoTimer);
+      heroAutoTimer = setInterval(() => {
+        if (viewShelf.style.display !== 'none' && appleHeroFeatured.length > 0) {
+          currentHeroIdx = (currentHeroIdx + 1) % appleHeroFeatured.length;
+          updateAppleHero(appleHeroFeatured[currentHeroIdx]);
+        }
+      }, 7000); // Rotaciona a cada 7 segundos se ocioso
+    }
+
+    function updateAppleHero(book) {
+      if (!book) return;
+
+      const coverImg = document.getElementById('apple-hero-cover-img');
+      const book3d = document.getElementById('apple-hero-book-3d');
+      const glow = document.getElementById('apple-hero-glow');
+      const cat = document.getElementById('apple-hero-category');
+      const time = document.getElementById('apple-hero-time');
+      const diff = document.getElementById('apple-hero-difficulty');
+      const pgs = document.getElementById('apple-hero-pages');
+      const title = document.getElementById('apple-hero-title');
+      const author = document.getElementById('apple-hero-author');
+      const desc = document.getElementById('apple-hero-desc');
+      const btnPlay = document.getElementById('apple-hero-btn-play');
+      const btnPlayText = document.getElementById('apple-hero-btn-text');
+      const btnToc = document.getElementById('apple-hero-btn-toc');
+
+      if (coverImg && book.cover) {
+        coverImg.style.opacity = '0';
+        setTimeout(() => {
+          coverImg.src = book.cover;
+          coverImg.alt = book.title;
+          coverImg.style.opacity = '1';
+        }, 120);
+      }
+
+      if (book3d) {
+        book3d.onclick = () => openBook(book.id);
+      }
+
+      if (glow) {
+        const glowColor = book.diffColor || '#F59E0B';
+        glow.style.background = `radial-gradient(circle, ${glowColor}33 0%, transparent 70%)`;
+      }
+
+      const catNames = {
+        quick: 'Nível 1 • Vitórias Rápidas',
+        pnl: 'Nível 2 • PNL & Persuasão',
+        mind: 'Nível 3 • Foco & Emoções',
+        mastery: 'Nível 4 • Mestres do Poder'
+      };
+
+      if (cat) cat.textContent = catNames[book.category] || 'Psicologia & Mente';
+      if (time) time.textContent = `⏱️ ${book.readingTime || '2h'}`;
+      if (diff) {
+        diff.textContent = (book.difficulty || 'Fácil').toUpperCase();
+        diff.style.color = book.diffColor || '#FFFFFF';
+      }
+      if (pgs) pgs.textContent = `${book.totalPages} PÁGS`;
+      if (title) title.textContent = book.title;
+      if (author) author.textContent = `${book.author || 'Edição Especial 7D'} • ${book.order ? 'Recomendado #' + book.order : 'Destaque'}`;
+      if (desc) desc.textContent = book.pedagogicalWhy || book.pedagogicalDesc || 'Leitura fundamental para desenvolver maestria mental, influência e tomada de decisões estratégicas.';
+
+      const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
+      const savedPage = localStorage.getItem(`page_${book.id}`);
+
+      if (btnPlayText) {
+        if (savedProgress > 0) {
+          btnPlayText.textContent = savedPage ? `Continuar Lendo (Pág. ${savedPage})` : 'Continuar Lendo';
+        } else {
+          btnPlayText.textContent = 'Começar a Ler Agora';
+        }
+      }
+
+      if (btnPlay) {
+        btnPlay.onclick = () => openBook(book.id);
+      }
+
+      if (btnToc) {
+        btnToc.onclick = () => {
+          openBook(book.id);
+          toggleToc(true);
+        };
+      }
+
+      // Atualiza Dots Ativos
+      const dots = document.querySelectorAll('.apple-dot');
+      dots.forEach((dot, idx) => {
+        const isCurrent = appleHeroFeatured[idx] && appleHeroFeatured[idx].id === book.id;
+        dot.classList.toggle('active', isCurrent);
       });
     }
 
+    // ==========================================================================
+    // RENDERIZAR DASHBOARD APPLE TV (FILEIRAS HORIZONTAIS COM CARDS 16:9)
+    // ==========================================================================
+    function renderShelf() {
+      if (!state.books || state.books.length === 0) return;
+
+      // Ordenar por ordem pedagógica (1 ao 12)
+      state.books.sort((a, b) => (a.order || 99) - (b.order || 99));
+
+      // Inicializa o Hero Showcase se ainda não tiver feito
+      if (appleHeroFeatured.length === 0) {
+        initAppleHero();
+      }
+
+      shelfSectionsContainer.innerHTML = '';
+
+      // 1. Identificar Livros em Andamento para a Fileira "Continuar Lendo"
+      const continueReadingBooks = state.books.filter(b => {
+        const prog = parseFloat(localStorage.getItem(`progress_${b.id}`) || '0');
+        return prog > 0;
+      });
+
+      // Definição das Fileiras Apple TV
+      const sections = [];
+
+      // Fileira 1: Continuar Lendo (Se houver livros iniciados ou se o filtro for continue)
+      if (continueReadingBooks.length > 0 || currentFilter === 'continue') {
+        sections.push({
+          id: 'continue',
+          filterKey: 'continue',
+          icon: '⏱️',
+          title: 'Continuar Lendo (Continue Watching)',
+          desc: 'Retome exatamente da página e do parágrafo onde você parou.',
+          books: continueReadingBooks.length > 0 ? continueReadingBooks : state.books.slice(0, 4)
+        });
+      }
+
+      // Fileira 2: Trilha Sequencial
+      sections.push({
+        id: 'sequence',
+        filterKey: 'sequence',
+        icon: '🔥',
+        title: 'Trilha Sequencial Recomendada (Do 1º ao ' + state.books.length + 'º)',
+        desc: 'A sequência ideal para destravar a leitura, criar dopamina e vencer a procrastinação.',
+        books: state.books
+      });
+
+      // Fileira 3: Vitórias Rápidas
+      sections.push({
+        id: 'quick',
+        filterKey: 'quick',
+        icon: '⚡',
+        title: 'Nível 1 • Vitórias Rápidas (< 4 Horas)',
+        desc: 'Livros curtos e instigantes para terminar em 1 a 2 dias e criar consistência.',
+        books: state.books.filter(b => b.category === 'quick')
+      });
+
+      // Fileira 4: PNL & Persuasão
+      sections.push({
+        id: 'pnl',
+        filterKey: 'pnl',
+        icon: '🧠',
+        title: 'Nível 2 • PNL, Comunicação & Persuasão Prática',
+        desc: 'Decodifique o comportamento humano, leia linguagem corporal e convença em negociações.',
+        books: state.books.filter(b => b.category === 'pnl')
+      });
+
+      // Fileira 5: Foco & Emoções
+      sections.push({
+        id: 'mind',
+        filterKey: 'mind',
+        icon: '🎯',
+        title: 'Nível 3 • Foco Profundo & Inteligência Emocional',
+        desc: 'A ciência da atenção plena, autocontrole da mente e influência psicológica.',
+        books: state.books.filter(b => b.category === 'mind')
+      });
+
+      // Fileira 6: Mestres do Poder
+      sections.push({
+        id: 'mastery',
+        filterKey: 'mastery',
+        icon: '👑',
+        title: 'Nível 4 • Estratégia Máxima & Chefes de Fase do Poder',
+        desc: 'As obras mais densas e transformadoras sobre estratégia, poder e antifragilidade.',
+        books: state.books.filter(b => b.category === 'mastery')
+      });
+
+      // Filtrar seções ativas
+      const activeSections = currentFilter === 'all' 
+        ? sections 
+        : sections.filter(s => s.filterKey === currentFilter);
+
+      activeSections.forEach(sec => {
+        if (!sec.books || sec.books.length === 0) return;
+
+        const secElem = document.createElement('div');
+        secElem.className = 'apple-row-wrap';
+
+        secElem.innerHTML = `
+          <div class="apple-row-header">
+            <div class="apple-row-title"><span>${sec.icon}</span> ${sec.title}</div>
+            <div class="apple-row-count">${sec.books.length} títulos</div>
+          </div>
+          <div class="apple-row-track-container">
+            <button class="apple-nav-arrow prev" title="Rolar para esquerda">‹</button>
+            <div class="apple-row-track"></div>
+            <button class="apple-nav-arrow next" title="Rolar para direita">›</button>
+          </div>
+        `;
+
+        const track = secElem.querySelector('.apple-row-track');
+        const btnPrev = secElem.querySelector('.apple-nav-arrow.prev');
+        const btnNext = secElem.querySelector('.apple-nav-arrow.next');
+
+        btnPrev.onclick = () => {
+          track.scrollBy({ left: -640, behavior: 'smooth' });
+        };
+        btnNext.onclick = () => {
+          track.scrollBy({ left: 640, behavior: 'smooth' });
+        };
+
+        sec.books.forEach(book => {
+          const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
+          const savedPage = localStorage.getItem(`page_${book.id}`);
+
+          const card = document.createElement('div');
+          card.className = 'apple-card';
+          card.setAttribute('data-book-id', book.id);
+
+          const coverSrc = book.cover || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140" fill="%23222"><rect width="100" height="140"/><text x="50%" y="50%" fill="%23888" dominant-baseline="middle" text-anchor="middle">Sem Capa</text></svg>';
+
+          card.innerHTML = `
+            <div class="apple-card-media">
+              <img class="apple-card-backdrop" src="${coverSrc}" alt="" loading="lazy" />
+              <div class="apple-card-poster">
+                <img class="apple-card-cover-img" src="${coverSrc}" alt="${escapeHtml(book.title)}" loading="lazy" />
+              </div>
+              <div class="apple-card-rank">#${book.order || '•'}</div>
+              <div class="apple-card-time">⏱️ ${book.readingTime || '2h'}</div>
+              ${savedProgress > 0 ? `
+                <div class="apple-card-progress-bar">
+                  <div class="apple-card-progress-fill" style="width: ${savedProgress}%"></div>
+                </div>
+              ` : ''}
+            </div>
+            <div class="apple-card-info">
+              <div class="apple-card-title">${escapeHtml(book.title)}</div>
+              <div class="apple-card-subtitle">
+                ${savedProgress > 0 
+                  ? `<span style="color: #FFFFFF; font-weight: 600;">Pág. ${savedPage || '1'}/${book.totalPages}</span> • <span>${Math.round(savedProgress)}% lido</span>` 
+                  : `<span>${escapeHtml(book.difficulty || 'Fácil')}</span> • <span>${book.totalPages} págs</span>`}
+              </div>
+            </div>
+          `;
+
+          // Hover dinâmico Apple TV: atualiza o Hero do topo com suavidade
+          card.onmouseenter = () => {
+            document.querySelectorAll('.apple-card').forEach(c => c.classList.remove('active-preview'));
+            card.classList.add('active-preview');
+            updateAppleHero(book);
+          };
+
+          // Clique abre o leitor
+          card.onclick = () => openBook(book.id);
+
+          track.appendChild(card);
+        });
+
+        shelfSectionsContainer.appendChild(secElem);
+      });
+    }
+
+    // ABRIR LIVRO NO LEITOR FLUIDO PRO
     function openBook(bookId, pushHistory = true) {
       const book = state.books.find(b => b.id === bookId);
       if (!book) return;
@@ -2052,14 +2899,14 @@
       }[m]));
     }
 
-    // Roteamento Inicial: Sempre abre a Estante de Livros a menos que haja link direto no hash
+    // Roteamento Inicial: Sempre abre a Estante de Livros Apple TV
     const initialHash = window.location.hash;
 
     if (initialHash && initialHash.startsWith('#/livro/')) {
       const bId = initialHash.replace('#/livro/', '');
       openBook(bId, false);
     } else {
-      goToShelf(false);
+      renderShelf();
     }
   </script>
 </body>
