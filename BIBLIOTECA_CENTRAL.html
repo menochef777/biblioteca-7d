@@ -2646,32 +2646,42 @@
       selectedVoice: null,
       utterance: null,
 
+      getMaleVoice() {
+        if (!('speechSynthesis' in window)) return null;
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return null;
+
+        const ptVoices = voices.filter(v => v.lang === 'pt-BR' || v.lang.startsWith('pt'));
+        if (ptVoices.length === 0) return null;
+
+        // 1. Procura vozes masculinas explícitas no Windows, Android, Mac ou Edge
+        const maleKeywords = ['daniel', 'antonio', 'felipe', 'jorge', 'ricardo', 'nicolau', 'male', 'homem', 'jab', 'yeb', 'ptd', 'br-pt-x'];
+        const explicitMale = ptVoices.find(v => {
+          const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+          return maleKeywords.some(kw => lower.includes(kw));
+        });
+        if (explicitMale) return explicitMale;
+
+        // 2. Procura vozes que NÃO sejam femininas
+        const femaleKeywords = ['maria', 'luciana', 'francisca', 'leticia', 'fernanda', 'female', 'mulher', 'afs', 'heloisa', 'vitoria'];
+        const nonFemale = ptVoices.find(v => {
+          const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+          return !femaleKeywords.some(kw => lower.includes(kw));
+        });
+        if (nonFemale) return nonFemale;
+
+        // 3. Fallback: Se o celular tiver apenas uma voz (ex: Google pt-BR feminino padrão), usa ela e baixamos o tom
+        return ptVoices[1] || ptVoices[0];
+      },
+
       initVoices() {
         if (!('speechSynthesis' in window)) return;
-        const updateVoice = () => {
-          const voices = window.speechSynthesis.getVoices();
-          const ptVoices = voices.filter(v => v.lang === 'pt-BR' || v.lang.startsWith('pt'));
-          if (ptVoices.length === 0) return;
-
-          // Seleção inteligente de voz MASCULINA (Daniel, Antonio, Felipe, Jorge, Google jab/yeb, etc.)
-          const maleKeywords = ['daniel', 'antonio', 'felipe', 'jorge', 'ricardo', 'nicolau', 'male', 'homem', 'jab', 'yeb', 'ptd', 'br-pt-x'];
-          const explicitMale = ptVoices.find(v => {
-            const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
-            return maleKeywords.some(kw => lower.includes(kw));
-          });
-
-          // Se não tiver palavra-chave masculina explícita, evita vozes com nomes femininos
-          const femaleKeywords = ['maria', 'luciana', 'francisca', 'leticia', 'fernanda', 'female', 'mulher', 'afs', 'heloisa'];
-          const nonFemale = ptVoices.find(v => {
-            const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
-            return !femaleKeywords.some(kw => lower.includes(kw));
-          });
-
-          this.selectedVoice = explicitMale || nonFemale || ptVoices[0];
+        const update = () => {
+          this.selectedVoice = this.getMaleVoice();
         };
-        updateVoice();
+        update();
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
-          window.speechSynthesis.onvoiceschanged = updateVoice;
+          window.speechSynthesis.onvoiceschanged = update;
         }
       },
 
@@ -2686,14 +2696,11 @@
           .trim();
       },
 
-      // Divide parágrafos longos em blocos de pensamento completos para evitar timeout no Android
       splitIntoSentences(text) {
         const cleaned = this.cleanText(text);
         if (!cleaned) return [];
-        // Se o parágrafo for de tamanho normal (até 280 caracteres), lê por inteiro sem fatiar
         if (cleaned.length <= 280) return [cleaned];
 
-        // Divide por ponto final, exclamação ou interrogação seguido de espaço
         const parts = cleaned.split(/(?<=[.!?])\s+/);
         const result = [];
         let current = '';
@@ -2718,8 +2725,10 @@
         this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
         if (this.paragraphs.length === 0) return;
 
-        // Limpa qualquer áudio anterior antes de iniciar nova sessão
         window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
 
         const offset = 90;
         let startIdx = this.paragraphs.findIndex(p => {
@@ -2732,6 +2741,36 @@
         this.isSpeaking = true;
         this.updateBtnUI();
         this.speakCurrentParagraph();
+      },
+
+      speakCustomSelection(text, startParagraph) {
+        if (!('speechSynthesis' in window)) {
+          alert('Seu navegador não possui suporte à síntese de voz.');
+          return;
+        }
+
+        this.stop();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
+        
+        if (startParagraph) {
+          const idx = this.paragraphs.indexOf(startParagraph);
+          this.currentParaIdx = idx !== -1 ? idx : 0;
+          document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-reading-now'));
+          startParagraph.classList.add('tts-reading-now');
+        }
+
+        this.isSpeaking = true;
+        this.updateBtnUI();
+
+        this.sentences = this.splitIntoSentences(text);
+        if (this.sentences.length === 0) return;
+
+        this.currentSentenceIdx = 0;
+        this.speakSentence();
       },
 
       speakCurrentParagraph() {
@@ -2769,7 +2808,6 @@
         if (!this.isSpeaking) return;
 
         if (this.currentSentenceIdx >= this.sentences.length) {
-          // Concluiu todas as partes do parágrafo, avança naturalmente para o próximo
           this.currentParaIdx++;
           setTimeout(() => {
             if (this.isSpeaking) this.speakCurrentParagraph();
@@ -2784,11 +2822,26 @@
           return;
         }
 
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
         const u = new SpeechSynthesisUtterance(sentenceText);
-        if (this.selectedVoice) u.voice = this.selectedVoice;
+        
+        // Sempre busca dinamicamente a melhor voz masculina
+        const voice = this.getMaleVoice();
+        if (voice) {
+          u.voice = voice;
+          // Se a voz selecionada tiver nome feminino (porque o aparelho só possui 1 voz instalada),
+          // forçamos o pitch em 0.58 para transformar em voz masculina/barítono profunda!
+          const isFemale = /maria|luciana|francisca|leticia|female|mulher|afs/i.test(voice.name);
+          u.pitch = isFemale ? 0.56 : 0.78;
+        } else {
+          u.pitch = 0.65;
+        }
+
         u.lang = 'pt-BR';
-        u.rate = 0.94;  // Ritmo calmo, pausado e muito claro
-        u.pitch = 0.75; // Tom grave profundo (voz masculina solene estilo locutor bíblico)
+        u.rate = 0.94; // Ritmo pausado e firme
 
         u.onend = () => {
           if (this.isSpeaking) {
@@ -3047,6 +3100,26 @@
         createHighlightFromSelection(color, false);
       };
     });
+
+    const popBtnListen = document.getElementById('pop-btn-listen');
+    if (popBtnListen) {
+      popBtnListen.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const textToSpeak = activeSelectedText;
+        const currentP = activeSelectedRange ? 
+          (activeSelectedRange.commonAncestorContainer.nodeType === 1 ? 
+            activeSelectedRange.commonAncestorContainer.closest('p.book-p') : 
+            activeSelectedRange.commonAncestorContainer.parentElement?.closest('p.book-p')) : null;
+
+        if (selectionPopover) selectionPopover.style.display = 'none';
+        window.getSelection()?.removeAllRanges();
+
+        if (textToSpeak && textToSpeak.trim().length > 0) {
+          audioEngine.speakCustomSelection(textToSpeak, currentP);
+        }
+      };
+    }
 
     if (popBtnNote) {
       popBtnNote.onclick = (e) => {
