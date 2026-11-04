@@ -43,8 +43,17 @@ CURADORIA = {
         "why": "Escrito em formato de diálogo/interrogatório direto com o Diabo. Prende a atenção do começo ao fim como um filme.",
         "complement": "Revela como a alienação e a preguiça mental travam 98% das pessoas."
     },
-    "pnl_t_cnicas_proibidas_de_persuas_o": {
+    "como_fazer_algu_m_gostar_de_voc_em_90_se": {
         "order": 4,
+        "category": "pnl",
+        "levelTitle": "Nível 2 • PNL & Influência Prática",
+        "difficulty": "Rápido & Prático (Rapport)",
+        "diffColor": "#F59E0B",
+        "why": "A arte de estabelecer rapport, linguagem corporal sintonizada e conexão instantânea com qualquer pessoa nos primeiros 90 segundos.",
+        "complement": "Domine o primeiro contato e cause impressões magnéticas imediatas."
+    },
+    "pnl_t_cnicas_proibidas_de_persuas_o": {
+        "order": 5,
         "category": "pnl",
         "levelTitle": "Nível 2 • PNL & Influência Prática",
         "difficulty": "Prático & Estimulante",
@@ -53,7 +62,7 @@ CURADORIA = {
         "complement": "Você lê e já testa na prática nas suas conversas no mesmo dia."
     },
     "comunicar_vender_e_negociar_com_pnl": {
-        "order": 5,
+        "order": 6,
         "category": "pnl",
         "levelTitle": "Nível 2 • PNL & Influência Prática",
         "difficulty": "Prático & Negócios",
@@ -62,7 +71,7 @@ CURADORIA = {
         "complement": "Transforma a teoria da PNL em dinheiro e resultados profissionais."
     },
     "poder_e_manipula_o": {
-        "order": 6,
+        "order": 7,
         "category": "pnl",
         "levelTitle": "Nível 2 • PNL & Influência Prática",
         "difficulty": "Defensivo & Alerta",
@@ -71,7 +80,7 @@ CURADORIA = {
         "complement": "Cria um escudo psicológico contra armadilhas de pessoas manipuladoras."
     },
     "introdu_o_a_pnl_joseph_o_connor": {
-        "order": 7,
+        "order": 8,
         "category": "pnl",
         "levelTitle": "Nível 2 • PNL & Influência Prática",
         "difficulty": "Visual & Completo (54 Diagramas)",
@@ -80,7 +89,7 @@ CURADORIA = {
         "complement": "Aprofunda a ciência de modelar comportamentos de sucesso."
     },
     "foco_by_daniel_goleman_z_lib_org_epub": {
-        "order": 8,
+        "order": 9,
         "category": "mind",
         "levelTitle": "Nível 3 • Foco & Inteligência Emocional",
         "difficulty": "Neurociência Prática",
@@ -89,7 +98,7 @@ CURADORIA = {
         "complement": "Prepara sua mente para absorver leituras maiores sem se dispersar."
     },
     "robert_b_cialdini_as_armas_da_persuas_o": {
-        "order": 9,
+        "order": 10,
         "category": "mind",
         "levelTitle": "Nível 3 • Foco & Inteligência Emocional",
         "difficulty": "Clássico da Psicologia Social",
@@ -98,7 +107,7 @@ CURADORIA = {
         "complement": "A ciência exata do porquê as pessoas dizem 'sim'."
     },
     "inteligencia_emocional_daniel_goleman": {
-        "order": 10,
+        "order": 11,
         "category": "mind",
         "levelTitle": "Nível 3 • Foco & Inteligência Emocional",
         "difficulty": "Profundo & Transformador",
@@ -106,8 +115,17 @@ CURADORIA = {
         "why": "O clássico mundial que provou que a inteligência emocional (QE) importa mais para o sucesso que o QI.",
         "complement": "Domínio da raiva, ansiedade, impulsividade e empatia."
     },
+    "o_pr_ncipe_nicolau_maquiavel": {
+        "order": 12,
+        "category": "mastery",
+        "levelTitle": "Nível 4 • Estratégia Máxima & Maestria",
+        "difficulty": "Tratado Clássico de Poder",
+        "diffColor": "#EF4444",
+        "why": "O tratado definitivo sobre a conquista, manutenção e preservação do poder, anotado por Napoleão Bonaparte. Realpolitik sem ilusões.",
+        "complement": "A base histórica e filosófica essencial para entender a política e a ambição humana."
+    },
     "antifr_gil_coisas_que_se_beneficiam_com_": {
-        "order": 11,
+        "order": 13,
         "category": "mastery",
         "levelTitle": "Nível 4 • Estratégia Máxima & Maestria",
         "difficulty": "Avançado & Filosófico (64 Gráficos)",
@@ -116,7 +134,7 @@ CURADORIA = {
         "complement": "Eleva seu modelo de mundo para um nível muito acima da média."
     },
     "as_48_leis_do_poder": {
-        "order": 12,
+        "order": 14,
         "category": "mastery",
         "levelTitle": "Nível 4 • Estratégia Máxima & Maestria",
         "difficulty": "O Livro Definitivo de Poder",
@@ -165,5 +183,5 @@ with open(DATA_FILE, 'w', encoding='utf-8') as f:
     json.dump(books, f, ensure_ascii=False, indent=None)
     f.write(";\n")
 
-print("Sucesso! Livros organizados do 1º ao 12º.")
+print(f"Sucesso! Livros organizados do 1º ao {len(books)}º.")
 

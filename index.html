@@ -2,7 +2,10 @@
 <html lang="pt-BR" data-theme="cinza-conforto">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#141416">
   <title>Biblioteca 7D — Leitor Pro & Absorção Mental</title>
   
   <!-- Fontes de Alta Absorção: Literata (Serifada Editorial) e Plus Jakarta Sans (UI) -->
@@ -1393,6 +1396,413 @@
       transition: color 0.15s;
     }
     .note-del-btn:hover { color: #EF4444; }
+
+    /* ==========================================================================
+       OTIMIZAÇÃO RESPONSIVA E ERGONOMIA MOBILE (SMARTPHONES & TABLETS)
+       ========================================================================== */
+    .reader-mobile-dock {
+      display: none;
+    }
+    #btn-mobile-aa {
+      display: none;
+    }
+
+    /* Modal / Bottom Sheet de Ajustes Visuais no Mobile */
+    #mobile-settings-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-hover);
+      border-radius: 20px 20px 0 0;
+      padding: 18px 20px max(24px, env(safe-area-inset-bottom));
+      z-index: 1600;
+      transform: translateY(110%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+    }
+    #mobile-settings-sheet.open {
+      transform: translateY(0);
+    }
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .sheet-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .sheet-group {
+      margin-bottom: 18px;
+    }
+    .sheet-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .sheet-font-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px 14px;
+    }
+    .sheet-themes-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .sheet-theme-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 8px 4px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .sheet-theme-item:active {
+      transform: scale(0.95);
+    }
+    .sheet-theme-item.active {
+      border-color: var(--accent);
+      background: var(--bg-elevated);
+    }
+    .sheet-theme-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+    .sheet-theme-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Botão fechar explícito para imagem em tela cheia */
+    .modal-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(20, 20, 24, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFF;
+      font-size: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2010;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+    }
+    .modal-close-btn:hover {
+      background: #FFF;
+      color: #000;
+    }
+
+    /* MEDIA QUERY PARA DISPOSITIVOS MÓVEIS (SMARTPHONES E TABLETS PEQUENOS <= 768px) */
+    @media (max-width: 768px) {
+      header.app-header {
+        padding: 12px 16px;
+      }
+      .app-brand .brand-title {
+        font-size: 15px;
+      }
+
+      /* Apple TV Hero no Celular */
+      .apple-hero {
+        min-height: auto;
+        height: auto;
+        padding: 68px 16px 24px;
+      }
+      .apple-hero-backdrop {
+        width: 100%;
+        height: 100%;
+        right: 0;
+        top: 0;
+        opacity: 0.25;
+        filter: blur(2px) brightness(0.65);
+      }
+      .apple-hero-vignette-left {
+        width: 100%;
+        background: linear-gradient(to right, #070709 30%, rgba(7,7,9,0.85) 75%, transparent 100%);
+      }
+      .apple-hero-vignette-bottom {
+        height: 80%;
+      }
+      .apple-top-pill {
+        top: 14px;
+        left: 14px;
+        padding: 6px 14px 6px 10px;
+        font-size: 12px;
+      }
+      .apple-hero-content {
+        max-width: 100%;
+        margin-bottom: 16px;
+      }
+      .apple-hero-title {
+        font-size: clamp(1.45rem, 6.4vw, 2.1rem);
+        line-height: 1.15;
+        margin-bottom: 6px;
+      }
+      .apple-hero-author {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      .apple-hero-desc {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 18px;
+        -webkit-line-clamp: 2;
+      }
+      .apple-hero-actions {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+      }
+      .apple-btn-primary, .apple-btn-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 13px 20px;
+        font-size: 14.5px;
+      }
+      .apple-hero-dots {
+        bottom: 10px;
+      }
+
+      /* Filtros e Fileiras no Celular */
+      .apple-filters-wrap {
+        padding: 0 16px;
+        margin-top: 12px;
+        margin-bottom: 16px;
+      }
+      .filter-pill {
+        padding: 7px 14px;
+        font-size: 12px;
+      }
+      .apple-row-wrap {
+        padding: 0 16px;
+        margin-bottom: 26px;
+      }
+      .apple-row-title {
+        font-size: 17px;
+      }
+      .apple-nav-arrow {
+        display: none !important;
+      }
+      .apple-row-track {
+        gap: 14px;
+        padding: 6px 2px 18px;
+        scroll-padding: 16px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .apple-card {
+        width: 220px;
+        scroll-snap-align: start;
+      }
+      .apple-card-title {
+        font-size: 13px;
+      }
+      .apple-card-subtitle {
+        font-size: 11px;
+      }
+
+      /* Barra Superior Fixa do Leitor no Celular */
+      .reader-subbar {
+        padding: 8px 12px;
+        padding-top: max(8px, env(safe-area-inset-top));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .reader-bar-left #btn-focus,
+      .reader-bar-left #btn-bionic,
+      .reader-bar-left #btn-tts,
+      .reader-bar-left span[style*="Pablo Marçal"],
+      .reader-bar-right .theme-picker,
+      .reader-bar-right #btn-notes,
+      .reader-bar-right #btn-font-dec,
+      .reader-bar-right #btn-font-inc,
+      .reader-bar-right #btn-fullscreen {
+        display: none !important;
+      }
+      .reader-bar-left {
+        gap: 8px;
+      }
+      .reader-page-badge {
+        padding: 5px 9px;
+        font-size: 12px;
+      }
+      .reader-bar-right {
+        gap: 6px;
+      }
+      #btn-mobile-aa {
+        display: inline-flex !important;
+        padding: 6px 12px;
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      /* Conteúdo da Leitura no Celular */
+      .reader-content-wrap {
+        padding: 56px 16px calc(80px + env(safe-area-inset-bottom)) !important;
+        max-width: 100%;
+      }
+      p.book-p {
+        font-size: clamp(17px, 4.8vw, 21px);
+        line-height: 1.8;
+        margin-bottom: 1.4em;
+      }
+      .book-heading.lvl-1 {
+        font-size: 1.55em;
+        margin-top: 2em;
+        padding-bottom: 8px;
+      }
+      .book-heading.lvl-2 {
+        font-size: 1.3em;
+        margin-top: 1.6em;
+      }
+      .book-heading.lvl-3 {
+        font-size: 1.15em;
+        margin-top: 1.3em;
+      }
+      .book-figure {
+        margin: 2em auto;
+        padding: 10px;
+      }
+
+      /* Dock Inferior do Leitor no Celular */
+      .reader-mobile-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: rgba(20, 20, 22, 0.96);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+        padding: 8px 10px max(10px, env(safe-area-inset-bottom));
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+      }
+      [data-theme="cinza-conforto"] .reader-mobile-dock { background: rgba(20, 20, 22, 0.96); }
+      [data-theme="amber-night"] .reader-mobile-dock { background: rgba(19, 16, 13, 0.96); }
+      [data-theme="salvia"] .reader-mobile-dock { background: rgba(13, 19, 17, 0.96); }
+      [data-theme="charcoal"] .reader-mobile-dock { background: rgba(14, 17, 22, 0.96); }
+      [data-theme="oled"] .reader-mobile-dock { background: rgba(0, 0, 0, 0.98); }
+
+      .dock-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 10px;
+        font-weight: 600;
+        font-family: var(--font-ui);
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+        position: relative;
+        min-width: 52px;
+      }
+      .dock-btn .dock-icon {
+        font-size: 18px;
+        line-height: 1;
+      }
+      .dock-btn:active {
+        transform: scale(0.92);
+      }
+      .dock-btn.active {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dock-btn.active .dock-icon {
+        filter: drop-shadow(0 0 6px var(--accent-glow));
+      }
+      .dock-badge {
+        position: absolute;
+        top: 2px;
+        right: 8px;
+        background: var(--accent);
+        color: #000;
+        font-size: 9.5px;
+        font-weight: 800;
+        border-radius: 99px;
+        padding: 1px 5px;
+        line-height: 1.2;
+      }
+
+      body.zen-navbar-hidden .reader-mobile-dock {
+        transform: translateY(115%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #toc-drawer, #notes-drawer {
+        width: 88vw;
+        max-width: 360px;
+      }
+
+      #selection-popover {
+        padding: 5px 8px;
+        gap: 6px;
+      }
+      .pop-btn {
+        font-size: 12px;
+        padding: 4px 6px;
+      }
+      .pop-color-dot {
+        width: 16px;
+        height: 16px;
+      }
+
+      .status-pill {
+        display: none !important;
+      }
+
+      .zen-eye-toggle {
+        top: 50px;
+        left: 12px;
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+      }
+      body.zen-navbar-hidden .zen-eye-toggle {
+        top: 12px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1478,9 +1888,9 @@
     <!-- Filtros de Trilha e Categorias Apple TV -->
     <div class="apple-filters-wrap">
       <div class="netflix-filters">
-        <div class="filter-pill active" data-filter="all">🎬 Todos os 12 Livros</div>
+        <div class="filter-pill active" data-filter="all">🎬 Todos os 14 Livros</div>
         <div class="filter-pill" data-filter="continue">⏱️ Continuar Lendo</div>
-        <div class="filter-pill" data-filter="sequence">🔥 Trilha Sequencial (1º ao 12º)</div>
+        <div class="filter-pill" data-filter="sequence">🔥 Trilha Sequencial (1º ao 14º)</div>
         <div class="filter-pill" data-filter="quick">⚡ Vitórias Rápidas (&lt; 4h)</div>
         <div class="filter-pill" data-filter="pnl">🧠 PNL &amp; Persuasão</div>
         <div class="filter-pill" data-filter="mind">🎯 Foco &amp; Emoções</div>
@@ -1531,6 +1941,9 @@
         <button class="btn" id="btn-font-dec" title="Diminuir fonte">A-</button>
         <button class="btn" id="btn-font-inc" title="Aumentar fonte">A+</button>
         <button class="btn" id="btn-fullscreen" title="Tela cheia">⛶ Tela Cheia</button>
+        
+        <!-- Botão Aa Compacto no Mobile -->
+        <button class="btn" id="btn-mobile-aa" title="Ajustes de Aparência e Tema">Aa</button>
       </div>
     </nav>
 
@@ -1539,11 +1952,85 @@
 
     <!-- Conteúdo do Livro (Texto Fluido + Imagens Preservadas) -->
     <div class="reader-content-wrap" id="reader-content"></div>
+
+    <!-- Dock Inferior Mobile (Barra do Polegar para Celulares) -->
+    <nav class="reader-mobile-dock" id="reader-mobile-dock" aria-label="Navegação móvel de leitura">
+      <button class="dock-btn" id="dock-btn-toc" title="Sumário do Livro">
+        <span class="dock-icon">📑</span>
+        <span>Sumário</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-focus" title="Foco Mental">
+        <span class="dock-icon">🎯</span>
+        <span>Foco</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-bionic" title="Bionic Reading">
+        <span class="dock-icon">⚡</span>
+        <span>Bionic</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-notes" title="Anotações e Destaques">
+        <span class="dock-icon">📝</span>
+        <span>Notas</span>
+        <span class="dock-badge" id="dock-notes-count" style="display: none;">0</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-settings" title="Aparência e Conforto Visual">
+        <span class="dock-icon">Aa</span>
+        <span>Visual</span>
+      </button>
+    </nav>
   </main>
 
   <!-- Indicador Flutuante de Progresso e Página -->
   <div class="status-pill" id="status-pill" style="display: none;">
     <span id="status-page">Pág. 1</span> • <span id="status-percent">0% lido</span>
+  </div>
+
+  <!-- Sheet de Ajustes Visuais Mobile -->
+  <div id="mobile-settings-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">Aparência & Conforto Visual</span>
+      <button class="btn" id="btn-close-sheet" style="padding: 4px 10px; font-size: 12px;">✕ Fechar</button>
+    </div>
+    
+    <div class="sheet-group">
+      <div class="sheet-label">Tamanho da Fonte</div>
+      <div class="sheet-font-row">
+        <button class="btn" id="sheet-font-dec" style="font-size: 16px; padding: 6px 16px;">A-</button>
+        <span id="sheet-font-size-label" style="font-weight: 700; font-family: var(--font-mono);">23px</span>
+        <button class="btn" id="sheet-font-inc" style="font-size: 16px; padding: 6px 16px;">A+</button>
+      </div>
+    </div>
+
+    <div class="sheet-group">
+      <div class="sheet-label">Tema Visual de Absorção</div>
+      <div class="sheet-themes-grid">
+        <div class="sheet-theme-item active" data-theme="cinza-conforto" title="Cinza Conforto">
+          <div class="sheet-theme-circle" style="background: #141416; border-color: #4ADE80;"></div>
+          <span class="sheet-theme-name">Cinza</span>
+        </div>
+        <div class="sheet-theme-item" data-theme="amber-night" title="Âmbar Noturno">
+          <div class="sheet-theme-circle" style="background: #13100D; border-color: #F59E0B;"></div>
+          <span class="sheet-theme-name">Âmbar</span>
+        </div>
+        <div class="sheet-theme-item" data-theme="salvia" title="Sálvia Deep">
+          <div class="sheet-theme-circle" style="background: #0D1311; border-color: #10B981;"></div>
+          <span class="sheet-theme-name">Sálvia</span>
+        </div>
+        <div class="sheet-theme-item" data-theme="charcoal" title="Carvão & Pérola">
+          <div class="sheet-theme-circle" style="background: #0E1116; border-color: #38BDF8;"></div>
+          <span class="sheet-theme-name">Carvão</span>
+        </div>
+        <div class="sheet-theme-item" data-theme="oled" title="OLED Preto Puro">
+          <div class="sheet-theme-circle" style="background: #000000; border-color: #71717A;"></div>
+          <span class="sheet-theme-name">OLED</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 14px;">
+      <button class="btn" id="sheet-fullscreen" style="flex: 1; justify-content: center; padding: 10px;">⛶ Tela Cheia</button>
+      <button class="btn" id="sheet-zen" style="flex: 1; justify-content: center; padding: 10px;">👁️ Ocultar Barras</button>
+    </div>
   </div>
 
   <!-- Drawer Lateral do Sumário -->
@@ -1584,6 +2071,7 @@
 
   <!-- Modal de Zoom de Imagens (Fullscreen) -->
   <div id="image-modal">
+    <button class="modal-close-btn" id="btn-close-modal" title="Fechar imagem">✕</button>
     <img id="modal-img" src="" alt="Imagem ampliada">
   </div>
 
@@ -1649,24 +2137,94 @@
       };
     }
 
+    // Elementos Mobile
+    const mobileSettingsSheet = document.getElementById('mobile-settings-sheet');
+    const btnMobileAa = document.getElementById('btn-mobile-aa');
+    const btnCloseSheet = document.getElementById('btn-close-sheet');
+    const sheetFontInc = document.getElementById('sheet-font-inc');
+    const sheetFontDec = document.getElementById('sheet-font-dec');
+    const sheetFontSizeLabel = document.getElementById('sheet-font-size-label');
+    const sheetFullscreen = document.getElementById('sheet-fullscreen');
+    const sheetZen = document.getElementById('sheet-zen');
+    const dockBtnToc = document.getElementById('dock-btn-toc');
+    const dockBtnFocus = document.getElementById('dock-btn-focus');
+    const dockBtnBionic = document.getElementById('dock-btn-bionic');
+    const dockBtnNotes = document.getElementById('dock-btn-notes');
+    const dockNotesCount = document.getElementById('dock-notes-count');
+    const dockBtnSettings = document.getElementById('dock-btn-settings');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+
     // Estado de Destaques
     let currentHighlights = [];
     let activeSelectedRange = null;
     let activeSelectedText = '';
     let activeSelectedPage = '1';
 
+    // Gerenciador Centralizado de Temas
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      state.theme = theme;
+      localStorage.setItem('lib_theme', theme);
+      document.querySelectorAll('.sheet-theme-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-theme') === theme);
+      });
+    }
+
+    // Gerenciador Centralizado de Tipografia
+    function updateFontSize(newSize) {
+      state.fontSize = Math.max(14, Math.min(36, newSize));
+      root.style.setProperty('--font-size', state.fontSize + 'px');
+      localStorage.setItem('lib_font_size', state.fontSize);
+      if (sheetFontSizeLabel) sheetFontSizeLabel.textContent = state.fontSize + 'px';
+    }
+
     // Inicialização de Tema
-    root.setAttribute('data-theme', state.theme);
-    root.style.setProperty('--font-size', state.fontSize + 'px');
+    applyTheme(state.theme);
+    updateFontSize(state.fontSize);
 
     document.querySelectorAll('.theme-opt').forEach(opt => {
       opt.addEventListener('click', () => {
         const theme = opt.getAttribute('data-theme');
-        root.setAttribute('data-theme', theme);
-        state.theme = theme;
-        localStorage.setItem('lib_theme', theme);
+        applyTheme(theme);
       });
     });
+
+    document.querySelectorAll('.sheet-theme-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const theme = item.getAttribute('data-theme');
+        applyTheme(theme);
+      });
+    });
+
+    function toggleMobileSettings(open) {
+      if (!mobileSettingsSheet) return;
+      mobileSettingsSheet.classList.toggle('open', open);
+      overlay.classList.toggle('active', open);
+      if (open && sheetFontSizeLabel) {
+        sheetFontSizeLabel.textContent = state.fontSize + 'px';
+      }
+    }
+
+    if (btnMobileAa) btnMobileAa.onclick = () => toggleMobileSettings(true);
+    if (dockBtnSettings) dockBtnSettings.onclick = () => toggleMobileSettings(true);
+    if (btnCloseSheet) btnCloseSheet.onclick = () => toggleMobileSettings(false);
+    if (sheetFontInc) sheetFontInc.onclick = () => updateFontSize(state.fontSize + 2);
+    if (sheetFontDec) sheetFontDec.onclick = () => updateFontSize(state.fontSize - 2);
+    if (sheetFullscreen) {
+      sheetFullscreen.onclick = () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      };
+    }
+    if (sheetZen) {
+      sheetZen.onclick = () => {
+        document.body.classList.toggle('zen-navbar-hidden');
+        toggleMobileSettings(false);
+      };
+    }
 
     const shelfSectionsContainer = document.getElementById('shelf-sections-container');
     let currentFilter = 'all';
@@ -1861,7 +2419,7 @@
         id: 'sequence',
         filterKey: 'sequence',
         icon: '🔥',
-        title: 'Trilha Sequencial Recomendada (Do 1º ao 12º)',
+        title: 'Trilha Sequencial Recomendada (Do 1º ao ' + state.books.length + 'º)',
         desc: 'A sequência ideal para destravar a leitura, criar dopamina e vencer a procrastinação.',
         books: state.books
       });
@@ -2032,13 +2590,15 @@
           p.setAttribute('data-page', b.page);
           p.innerHTML = b.text;
           
-          // Hover do Modo Foco
-          p.onmouseenter = () => {
+          // Hover ou Toque no Modo Foco
+          const activateParaFocus = () => {
             if (state.focusMode) {
               document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('active-focus'));
               p.classList.add('active-focus');
             }
           };
+          p.onmouseenter = activateParaFocus;
+          p.onclick = activateParaFocus;
           frag.appendChild(p);
         }
       });
@@ -2067,11 +2627,12 @@
       }
 
       const restoreScroll = () => {
+        const offset = window.innerWidth <= 768 ? -56 : -90;
         if (savedPage) {
           const targetP = document.querySelector(`#reader-content p.book-p[data-page="${savedPage}"]`);
           if (targetP) {
             targetP.scrollIntoView({ behavior: 'instant', block: 'start' });
-            window.scrollBy(0, -90); // compensa a barra fixa flutuante
+            window.scrollBy(0, offset); // compensa a barra fixa flutuante
             updateProgress();
             return;
           }
@@ -2126,10 +2687,16 @@
     function toggleToc(open) {
       tocDrawer.classList.toggle('open', open);
       overlay.classList.toggle('active', open);
+      if (open) toggleMobileSettings(false);
     }
     btnToc.onclick = () => toggleToc(true);
+    if (dockBtnToc) dockBtnToc.onclick = () => toggleToc(true);
     btnCloseToc.onclick = () => toggleToc(false);
-    overlay.onclick = () => toggleToc(false);
+    overlay.onclick = () => {
+      toggleToc(false);
+      toggleNotes(false);
+      toggleMobileSettings(false);
+    };
 
     // ==========================================================================
     // SISTEMA DE MARCAÇÕES & CADERNO DE ANOTAÇÕES
@@ -2182,6 +2749,10 @@
 
     function renderNotesDrawer() {
       notesCount.textContent = currentHighlights.length;
+      if (dockNotesCount) {
+        dockNotesCount.textContent = currentHighlights.length;
+        dockNotesCount.style.display = currentHighlights.length > 0 ? 'inline-block' : 'none';
+      }
       notesTotalLabel.textContent = `${currentHighlights.length} destaques salvos`;
       notesListContainer.innerHTML = '';
 
@@ -2190,7 +2761,7 @@
           <div style="text-align: center; color: var(--text-muted); padding: 40px 10px;">
             <div style="font-size: 32px; margin-bottom: 12px;">🖍️</div>
             <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Nenhum destaque ainda</div>
-            <div style="font-size: 13px;">Selecione qualquer trecho com o mouse para marcar e guardar suas notas aqui!</div>
+            <div style="font-size: 13px;">Selecione qualquer trecho para marcar e guardar suas notas aqui!</div>
           </div>
         `;
         return;
@@ -2246,8 +2817,10 @@
     function toggleNotes(open) {
       notesDrawer.classList.toggle('open', open);
       overlay.classList.toggle('active', open);
+      if (open) toggleMobileSettings(false);
     }
     btnNotes.onclick = () => toggleNotes(true);
+    if (dockBtnNotes) dockBtnNotes.onclick = () => toggleNotes(true);
     btnCloseNotes.onclick = () => toggleNotes(false);
 
     btnExportNotes.onclick = () => {
@@ -2298,7 +2871,8 @@
       activeSelectedPage = pElem && pElem.getAttribute('data-page') ? pElem.getAttribute('data-page') : '1';
 
       const popTop = window.scrollY + rect.top - 52;
-      const popLeft = Math.max(16, Math.min(window.innerWidth - 320, window.scrollX + rect.left + (rect.width / 2) - 130));
+      const popWidth = selectionPopover.offsetWidth || 260;
+      const popLeft = Math.max(12, Math.min(window.innerWidth - popWidth - 12, window.scrollX + rect.left + (rect.width / 2) - (popWidth / 2)));
 
       selectionPopover.style.top = `${popTop}px`;
       selectionPopover.style.left = `${popLeft}px`;
@@ -2381,12 +2955,15 @@
     // ==========================================================================
     // MODO FOCO CEREBRAL (FOCUS MODE)
     // ==========================================================================
-    btnFocus.onclick = () => {
+    const toggleFocusAction = () => {
       state.focusMode = !state.focusMode;
       btnFocus.classList.toggle('active', state.focusMode);
+      if (dockBtnFocus) dockBtnFocus.classList.toggle('active', state.focusMode);
       body.classList.toggle('focus-mode-active', state.focusMode);
       btnFocus.textContent = state.focusMode ? '🎯 Foco Mental: ON' : '🎯 Foco Mental: OFF';
     };
+    btnFocus.onclick = toggleFocusAction;
+    if (dockBtnFocus) dockBtnFocus.onclick = toggleFocusAction;
 
     // BIONIC READING EM TOM ÂMBAR
     function bionicText(text) {
@@ -2400,9 +2977,10 @@
 
     const originalParas = new WeakMap();
 
-    btnBionic.onclick = () => {
+    const toggleBionicAction = () => {
       state.bionic = !state.bionic;
       btnBionic.classList.toggle('active', state.bionic);
+      if (dockBtnBionic) dockBtnBionic.classList.toggle('active', state.bionic);
       btnBionic.textContent = state.bionic ? '⚡ Bionic: ON' : '⚡ Bionic: OFF';
 
       const paras = document.querySelectorAll('#reader-content p.book-p');
@@ -2417,22 +2995,12 @@
         }
       });
     };
+    btnBionic.onclick = toggleBionicAction;
+    if (dockBtnBionic) dockBtnBionic.onclick = toggleBionicAction;
 
     // CONTROLES DE TIPOGRAFIA
-    btnFontInc.onclick = () => {
-      if (state.fontSize < 34) {
-        state.fontSize += 2;
-        root.style.setProperty('--font-size', state.fontSize + 'px');
-        localStorage.setItem('lib_font_size', state.fontSize);
-      }
-    };
-    btnFontDec.onclick = () => {
-      if (state.fontSize > 14) {
-        state.fontSize -= 2;
-        root.style.setProperty('--font-size', state.fontSize + 'px');
-        localStorage.setItem('lib_font_size', state.fontSize);
-      }
-    };
+    btnFontInc.onclick = () => updateFontSize(state.fontSize + 2);
+    btnFontDec.onclick = () => updateFontSize(state.fontSize - 2);
 
     btnFullscreen.onclick = () => {
       if (!document.fullscreenElement) {
@@ -2585,6 +3153,13 @@
       imageModal.classList.remove('open');
       modalImg.src = '';
     };
+    if (btnCloseModal) {
+      btnCloseModal.onclick = (e) => {
+        e.stopPropagation();
+        imageModal.classList.remove('open');
+        modalImg.src = '';
+      };
+    }
 
     // VOLTAR PARA A ESTANTE
     function goToShelf(pushHistory = true) {
@@ -2592,6 +3167,7 @@
       selectionPopover.style.display = 'none';
       toggleNotes(false);
       toggleToc(false);
+      toggleMobileSettings(false);
       viewReader.style.display = 'none';
       viewShelf.style.display = 'block';
       

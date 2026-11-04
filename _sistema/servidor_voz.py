@@ -23,7 +23,7 @@ PABLO_SAMPLE = os.path.join(SISTEMA_DIR, 'biblioteca_data', 'amostra_pablo_marca
 vs_lock = asyncio.Lock()
 
 def limpar_texto_para_tts(t: str) -> str:
-    """Higieniza quebras de hífens do PDF e termos em inglês para pronúncia brasileira perfeita"""
+    """Higieniza quebras de hífens do PDF, termos em inglês e adiciona padding para nunca cortar o final"""
     t = re.sub(r'(\w+)-\s+(\w+)', r'\1\2', t)
     t = re.sub(r'\bde\s+talhes\b', 'detalhes', t, flags=re.IGNORECASE)
     t = re.sub(r'\bimpressionan\s+te\b', 'impressionante', t, flags=re.IGNORECASE)
@@ -32,7 +32,13 @@ def limpar_texto_para_tts(t: str) -> str:
     t = re.sub(r'\bpower\s*point\b', 'póuer pointe', t, flags=re.IGNORECASE)
     t = re.sub(r'\btennis\s+Qix\b', 'tênis Kíquis', t, flags=re.IGNORECASE)
     t = re.sub(r'\bQix\b', 'Kíquis', t, flags=re.IGNORECASE)
-    return re.sub(r'\s+', ' ', t).strip()
+    t = re.sub(r'\s+', ' ', t).strip()
+    
+    # Garante pontuação final e adiciona padding de respiro para jamais cortar a última palavra
+    if not t.endswith(('.', '!', '?', '...')):
+        t += '.'
+    t += ' ...'
+    return t
 
 # Vozes Disponíveis
 VOICES = {
@@ -123,7 +129,8 @@ async def handle_tts(request):
                             "voice": "800814af",
                             "response_format": "mp3",
                             "language": "pt",
-                            "speed": 1.05
+                            "speed": 0.94,
+                            "num_step": 32
                         }).encode('utf-8')
                         req_vs = urllib.request.Request(
                             "http://127.0.0.1:3900/v1/audio/speech",
