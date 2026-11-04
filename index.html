@@ -2033,6 +2033,10 @@
         pill.classList.add('active');
         currentFilter = pill.getAttribute('data-filter');
         renderShelf();
+        const rect = shelfSectionsContainer.getBoundingClientRect();
+        if (rect.top > window.innerHeight * 0.65) {
+          shelfSectionsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
     });
 
@@ -2448,25 +2452,30 @@
       });
     }
 
-    // SUMÁRIO INTERATIVO
+    // SUMÁRIO INTERATIVO PRO
     function renderTocDrawer(toc) {
       drawerTocList.innerHTML = '';
       if (!toc || toc.length === 0) {
-        drawerTocList.innerHTML = '<div style="color: var(--text-muted); padding: 20px;">Nenhum sumário estruturado encontrado no PDF.</div>';
+        drawerTocList.innerHTML = '<div style="color: var(--text-muted); padding: 24px; text-align: center; font-size: 14px;">Nenhum sumário estruturado encontrado.</div>';
         return;
       }
 
       toc.forEach(item => {
         const a = document.createElement('a');
-        a.href = `#${item.id}`;
-        a.className = `toc-item lvl-${item.lvl}`;
-        a.style.paddingLeft = `${(item.lvl - 1) * 16 + 12}px`;
+        a.href = `#${item.id || ''}`;
+        a.className = `toc-item lvl-${item.lvl || 1}`;
+        a.style.paddingLeft = `${((item.lvl || 1) - 1) * 16 + 14}px`;
         a.textContent = item.title;
         a.onclick = (e) => {
           e.preventDefault();
-          const target = document.getElementById(item.id);
+          let target = item.id ? document.getElementById(item.id) : null;
+          if (!target && item.page) {
+            target = document.querySelector(`#reader-content [data-page="${item.page}"]`);
+          }
           if (target) {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const offset = window.innerWidth <= 768 ? -56 : -85;
+            window.scrollBy(0, offset);
             toggleToc(false);
           }
         };
@@ -2485,7 +2494,10 @@
     function toggleToc(open) {
       tocDrawer.classList.toggle('open', open);
       overlay.classList.toggle('active', open);
-      
+      if (open && tocSearch) {
+        tocSearch.value = '';
+        document.querySelectorAll('#drawer-toc-list .toc-item').forEach(el => el.style.display = 'block');
+      }
     }
     btnToc.onclick = () => toggleToc(true);
     
