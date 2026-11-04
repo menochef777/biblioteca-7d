@@ -1938,15 +1938,34 @@
 
   <!-- Script Lógico Central da Biblioteca & Leitor -->
   <script>
-    // ESTADO GLOBAL (Carregamento Ultrarrápido: 200KB)
-    const state = {
-      books: window.BIBLIOTECA_CATALOGO || window.BIBLIOTECA_LIVROS || [],
-      currentBook: null,
-      fontSize: parseInt(localStorage.getItem('lib_font_size') || '23'),
-      theme: localStorage.getItem('lib_theme') || 'cinza-conforto'
+    // ==========================================================================
+    // BIBLIOTECA 7D PRO — MOTOR 100% EM MEMÓRIA (ZERO LOCALSTORAGE / COMPATÍVEL ANDROID)
+    // ==========================================================================
+
+    // Armazenamento transitório puramente em memória da sessão (zero permissões de disco)
+    const sessionMemory = {
+      progress: {},
+      page: {},
+      scroll: {},
+      highlights: {},
+      theme: 'cinza-conforto',
+      fontSize: 22
     };
 
-    // DOM Elements
+    const state = {
+      _books: null,
+      get books() {
+        if (!this._books || this._books.length === 0) {
+          this._books = window.BIBLIOTECA_CATALOGO || window.BIBLIOTECA_LIVROS || [];
+        }
+        return this._books;
+      },
+      currentBook: null,
+      fontSize: 22,
+      theme: 'cinza-conforto'
+    };
+
+    // Elementos do DOM
     const root = document.documentElement;
     const body = document.body;
     const viewShelf = document.getElementById('view-shelf');
@@ -1989,41 +2008,73 @@
     const btnFooterTop = document.getElementById('btn-footer-top');
     const readerBookTitleBadge = document.getElementById('reader-book-title-badge');
 
-    if (btnBackReader) btnBackReader.onclick = () => goToShelf(true);
-    if (btnStickyBack) btnStickyBack.onclick = () => goToShelf(true);
-    if (btnFooterBack) btnFooterBack.onclick = () => goToShelf(true);
-    if (btnFooterTop) btnFooterTop.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Hero buttons
+    const heroBtnPlay = document.getElementById('apple-hero-btn-play');
+    const heroBtnToc = document.getElementById('apple-hero-btn-toc');
+    const heroBook3d = document.getElementById('apple-hero-book-3d');
+    const homePill = document.getElementById('apple-home-pill');
 
-    // Estado de Destaques
+    if (btnBackReader) btnBackReader.addEventListener('click', (e) => { e.preventDefault(); goToShelf(true); });
+    if (btnStickyBack) btnStickyBack.addEventListener('click', (e) => { e.preventDefault(); goToShelf(true); });
+    if (btnFooterBack) btnFooterBack.addEventListener('click', (e) => { e.preventDefault(); goToShelf(true); });
+    if (btnFooterTop) btnFooterTop.addEventListener('click', (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    if (btnHome) btnHome.addEventListener('click', (e) => { e.preventDefault(); goToShelf(true); });
+    if (homePill) homePill.addEventListener('click', (e) => { e.preventDefault(); goToShelf(true); });
+
+    if (heroBtnPlay) {
+      heroBtnPlay.addEventListener('click', (e) => {
+        e.preventDefault();
+        const current = (appleHeroFeatured && appleHeroFeatured[currentHeroIdx]) || state.books[0];
+        if (current) openBook(current.id);
+      });
+    }
+
+    if (heroBtnToc) {
+      heroBtnToc.addEventListener('click', (e) => {
+        e.preventDefault();
+        const current = (appleHeroFeatured && appleHeroFeatured[currentHeroIdx]) || state.books[0];
+        if (current) {
+          openBook(current.id);
+          toggleToc(true);
+        }
+      });
+    }
+
+    if (heroBook3d) {
+      heroBook3d.addEventListener('click', (e) => {
+        e.preventDefault();
+        const current = (appleHeroFeatured && appleHeroFeatured[currentHeroIdx]) || state.books[0];
+        if (current) openBook(current.id);
+      });
+    }
+
+    // Estado de Destaques em memória
     let currentHighlights = [];
     let activeSelectedRange = null;
     let activeSelectedText = '';
     let activeSelectedPage = '1';
 
-    // Gerenciador Centralizado de Temas
+    // Gerenciador Centralizado de Temas (Zero localStorage)
     function applyTheme(theme) {
       root.setAttribute('data-theme', theme);
       state.theme = theme;
-      localStorage.setItem('lib_theme', theme);
-
+      sessionMemory.theme = theme;
     }
 
-    // Gerenciador Centralizado de Tipografia
+    // Gerenciador Centralizado de Tipografia (Zero localStorage)
     function updateFontSize(newSize) {
       state.fontSize = Math.max(14, Math.min(36, newSize));
       root.style.setProperty('--font-size', state.fontSize + 'px');
-      localStorage.setItem('lib_font_size', state.fontSize);
-      
+      sessionMemory.fontSize = state.fontSize;
     }
 
-    // Inicialização de Tema
     applyTheme(state.theme);
     updateFontSize(state.fontSize);
 
     document.querySelectorAll('.theme-opt').forEach(opt => {
       opt.addEventListener('click', () => {
         const theme = opt.getAttribute('data-theme');
-        applyTheme(theme);
+        if (theme) applyTheme(theme);
       });
     });
 
@@ -2032,20 +2083,23 @@
 
     // Filtros Netflix
     document.querySelectorAll('.filter-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
+      pill.addEventListener('click', (e) => {
+        e.preventDefault();
         document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
-        currentFilter = pill.getAttribute('data-filter');
+        currentFilter = pill.getAttribute('data-filter') || 'all';
         renderShelf();
-        const rect = shelfSectionsContainer.getBoundingClientRect();
-        if (rect.top > window.innerHeight * 0.65) {
-          shelfSectionsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (shelfSectionsContainer) {
+          const rect = shelfSectionsContainer.getBoundingClientRect();
+          if (rect.top > window.innerHeight * 0.6) {
+            shelfSectionsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       });
     });
 
     // ==========================================================================
-    // CONTROLE DO HERO SHOWCASE APPLE TV & CARROSSEL CINEMATOGRÁFICO
+    // CONTROLE DO HERO SHOWCASE APPLE TV
     // ==========================================================================
     let appleHeroFeatured = [];
     let currentHeroIdx = 0;
@@ -2054,7 +2108,6 @@
     function initAppleHero() {
       if (!state.books || state.books.length === 0) return;
 
-      // Livros de Destaque para o Hero Apple TV (Top 5 Estratégicos)
       const featuredIds = [
         'antimedo_versa_o_2_0',
         'a_arte_da_guerra_sun_tzu',
@@ -2065,14 +2118,12 @@
       appleHeroFeatured = state.books.filter(b => featuredIds.includes(b.id));
       if (appleHeroFeatured.length === 0) appleHeroFeatured = state.books.slice(0, 5);
 
-      // Renderizar Dots de Paginação
       const dotsContainer = document.getElementById('apple-hero-dots');
       if (dotsContainer) {
         dotsContainer.innerHTML = '';
         appleHeroFeatured.forEach((book, idx) => {
           const dot = document.createElement('div');
           dot.className = `apple-dot ${idx === currentHeroIdx ? 'active' : ''}`;
-          dot.title = book.title;
           dot.onclick = () => {
             currentHeroIdx = idx;
             updateAppleHero(appleHeroFeatured[currentHeroIdx]);
@@ -2082,45 +2133,33 @@
         });
       }
 
-      // Inicializa o primeiro livro no Hero
       updateAppleHero(appleHeroFeatured[currentHeroIdx]);
       resetHeroTimer();
-
-      // Pílula Home do Topo
-      const homePill = document.getElementById('apple-home-pill');
-      if (homePill) {
-        homePill.onclick = () => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-      }
     }
 
     function resetHeroTimer() {
       if (heroAutoTimer) clearInterval(heroAutoTimer);
       heroAutoTimer = setInterval(() => {
-        if (viewShelf.style.display !== 'none' && appleHeroFeatured.length > 0) {
+        if (viewShelf && viewShelf.style.display !== 'none' && appleHeroFeatured.length > 0) {
           currentHeroIdx = (currentHeroIdx + 1) % appleHeroFeatured.length;
           updateAppleHero(appleHeroFeatured[currentHeroIdx]);
         }
-      }, 7000); // Rotaciona a cada 7 segundos se ocioso
+      }, 7000);
     }
 
     function updateAppleHero(book) {
       if (!book) return;
 
       const coverImg = document.getElementById('apple-hero-cover-img');
-      const book3d = document.getElementById('apple-hero-book-3d');
       const glow = document.getElementById('apple-hero-glow');
-      const cat = document.getElementById('apple-hero-category');
+      const cat = document.getElementById('apple-hero-cat');
       const time = document.getElementById('apple-hero-time');
-      const diff = document.getElementById('apple-hero-difficulty');
-      const pgs = document.getElementById('apple-hero-pages');
+      const diff = document.getElementById('apple-hero-diff');
+      const pgs = document.getElementById('apple-hero-pgs');
       const title = document.getElementById('apple-hero-title');
       const author = document.getElementById('apple-hero-author');
       const desc = document.getElementById('apple-hero-desc');
-      const btnPlay = document.getElementById('apple-hero-btn-play');
       const btnPlayText = document.getElementById('apple-hero-btn-text');
-      const btnToc = document.getElementById('apple-hero-btn-toc');
 
       if (coverImg && book.cover) {
         coverImg.style.opacity = '0';
@@ -2128,16 +2167,17 @@
           coverImg.src = book.cover;
           coverImg.alt = book.title;
           coverImg.style.opacity = '1';
-        }, 120);
-      }
-
-      if (book3d) {
-        book3d.onclick = () => openBook(book.id);
+        }, 100);
       }
 
       if (glow) {
-        const glowColor = book.diffColor || '#F59E0B';
-        glow.style.background = `radial-gradient(circle, ${glowColor}33 0%, transparent 70%)`;
+        const glowColors = {
+          quick: 'rgba(245, 158, 11, 0.28)',
+          pnl: 'rgba(56, 189, 248, 0.25)',
+          mind: 'rgba(16, 185, 129, 0.25)',
+          mastery: 'rgba(168, 85, 247, 0.25)'
+        };
+        glow.style.background = `radial-gradient(circle, ${glowColors[book.category] || 'rgba(245, 158, 11, 0.25)'} 0%, transparent 70%)`;
       }
 
       const catNames = {
@@ -2158,29 +2198,17 @@
       if (author) author.textContent = `${book.author || 'Edição Especial 7D'} • ${book.order ? 'Recomendado #' + book.order : 'Destaque'}`;
       if (desc) desc.textContent = book.pedagogicalWhy || book.pedagogicalDesc || 'Leitura fundamental para desenvolver maestria mental, influência e tomada de decisões estratégicas.';
 
-      const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
-      const savedPage = localStorage.getItem(`page_${book.id}`);
+      const memProg = sessionMemory.progress[book.id] || 0;
+      const memPg = sessionMemory.page[book.id] || 1;
 
       if (btnPlayText) {
-        if (savedProgress > 0) {
-          btnPlayText.textContent = savedPage ? `Continuar Lendo (Pág. ${savedPage})` : 'Continuar Lendo';
+        if (memProg > 0) {
+          btnPlayText.textContent = `Continuar Lendo (Pág. ${memPg})`;
         } else {
           btnPlayText.textContent = 'Começar a Ler Agora';
         }
       }
 
-      if (btnPlay) {
-        btnPlay.onclick = () => openBook(book.id);
-      }
-
-      if (btnToc) {
-        btnToc.onclick = () => {
-          openBook(book.id);
-          toggleToc(true);
-        };
-      }
-
-      // Atualiza Dots Ativos
       const dots = document.querySelectorAll('.apple-dot');
       dots.forEach((dot, idx) => {
         const isCurrent = appleHeroFeatured[idx] && appleHeroFeatured[idx].id === book.id;
@@ -2192,93 +2220,77 @@
     // RENDERIZAR DASHBOARD APPLE TV (FILEIRAS HORIZONTAIS COM CARDS 16:9)
     // ==========================================================================
     function renderShelf() {
-      if (!state.books || state.books.length === 0) {
-        state.books = window.BIBLIOTECA_CATALOGO || window.BIBLIOTECA_LIVROS || [];
-      }
       if (!state.books || state.books.length === 0) return;
 
-      // Ordenar por ordem pedagógica (1 ao 12)
       state.books.sort((a, b) => (a.order || 99) - (b.order || 99));
 
-      // Inicializa o Hero Showcase se ainda não tiver feito
       if (appleHeroFeatured.length === 0) {
         initAppleHero();
       }
 
+      if (!shelfSectionsContainer) return;
       shelfSectionsContainer.innerHTML = '';
 
-      // 1. Identificar Livros em Andamento para a Fileira "Continuar Lendo"
-      const continueReadingBooks = state.books.filter(b => {
-        const prog = parseFloat(localStorage.getItem(`progress_${b.id}`) || '0');
-        return prog > 0;
-      });
+      const continueReadingBooks = state.books.filter(b => (sessionMemory.progress[b.id] || 0) > 0);
 
-      // Definição das Fileiras Apple TV
       const sections = [];
 
-      // Fileira 1: Continuar Lendo (Se houver livros iniciados ou se o filtro for continue)
       if (continueReadingBooks.length > 0 || currentFilter === 'continue') {
         sections.push({
           id: 'continue',
           filterKey: 'continue',
           icon: '⏱️',
           title: 'Continuar Lendo (Continue Watching)',
-          desc: 'Retome exatamente da página e do parágrafo onde você parou.',
+          desc: 'Retome exatamente da página e do parágrafo onde você parou nesta sessão.',
           books: continueReadingBooks.length > 0 ? continueReadingBooks : state.books.slice(0, 4)
         });
       }
 
-      // Fileira 2: Trilha Sequencial
       sections.push({
         id: 'sequence',
         filterKey: 'sequence',
-        icon: '🔥',
+        icon: '📚',
         title: 'Trilha Sequencial Recomendada (Do 1º ao ' + state.books.length + 'º)',
         desc: 'A sequência ideal para destravar a leitura, criar dopamina e vencer a procrastinação.',
         books: state.books
       });
 
-      // Fileira 3: Vitórias Rápidas
       sections.push({
         id: 'quick',
         filterKey: 'quick',
         icon: '⚡',
-        title: 'Nível 1 • Vitórias Rápidas (< 4 Horas)',
+        title: 'Nível 1 — Vitórias Rápidas (< 4 Horas)',
         desc: 'Livros curtos e instigantes para terminar em 1 a 2 dias e criar consistência.',
         books: state.books.filter(b => b.category === 'quick')
       });
 
-      // Fileira 4: PNL & Persuasão
       sections.push({
         id: 'pnl',
         filterKey: 'pnl',
         icon: '🧠',
-        title: 'Nível 2 • PNL, Comunicação & Persuasão Prática',
+        title: 'Nível 2 — PNL, Comunicação & Persuasão Prática',
         desc: 'Decodifique o comportamento humano, leia linguagem corporal e convença em negociações.',
         books: state.books.filter(b => b.category === 'pnl')
       });
 
-      // Fileira 5: Foco & Emoções
       sections.push({
         id: 'mind',
         filterKey: 'mind',
         icon: '🎯',
-        title: 'Nível 3 • Foco Profundo & Inteligência Emocional',
+        title: 'Nível 3 — Foco Profundo & Inteligência Emocional',
         desc: 'A ciência da atenção plena, autocontrole da mente e influência psicológica.',
         books: state.books.filter(b => b.category === 'mind')
       });
 
-      // Fileira 6: Mestres do Poder
       sections.push({
         id: 'mastery',
         filterKey: 'mastery',
         icon: '👑',
-        title: 'Nível 4 • Estratégia Máxima & Chefes de Fase do Poder',
+        title: 'Nível 4 — Estratégia Máxima & Chefes de Fase do Poder',
         desc: 'As obras mais densas e transformadoras sobre estratégia, poder e antifragilidade.',
         books: state.books.filter(b => b.category === 'mastery')
       });
 
-      // Filtrar seções ativas
       const activeSections = currentFilter === 'all' 
         ? sections 
         : sections.filter(s => s.filterKey === currentFilter);
@@ -2295,9 +2307,9 @@
             <div class="apple-row-count">${sec.books.length} títulos</div>
           </div>
           <div class="apple-row-track-container">
-            <button class="apple-nav-arrow prev" title="Rolar para esquerda">‹</button>
+            <button class="apple-nav-arrow prev" title="Rolar para esquerda">◀</button>
             <div class="apple-row-track"></div>
-            <button class="apple-nav-arrow next" title="Rolar para direita">›</button>
+            <button class="apple-nav-arrow next" title="Rolar para direita">▶</button>
           </div>
         `;
 
@@ -2305,20 +2317,21 @@
         const btnPrev = secElem.querySelector('.apple-nav-arrow.prev');
         const btnNext = secElem.querySelector('.apple-nav-arrow.next');
 
-        btnPrev.onclick = () => {
-          track.scrollBy({ left: -640, behavior: 'smooth' });
-        };
-        btnNext.onclick = () => {
-          track.scrollBy({ left: 640, behavior: 'smooth' });
-        };
+        if (btnPrev && track) {
+          btnPrev.onclick = () => track.scrollBy({ left: -640, behavior: 'smooth' });
+        }
+        if (btnNext && track) {
+          btnNext.onclick = () => track.scrollBy({ left: 640, behavior: 'smooth' });
+        }
 
         sec.books.forEach(book => {
-          const savedProgress = parseFloat(localStorage.getItem(`progress_${book.id}`) || '0');
-          const savedPage = localStorage.getItem(`page_${book.id}`);
+          const memProg = sessionMemory.progress[book.id] || 0;
+          const memPg = sessionMemory.page[book.id] || 1;
 
           const card = document.createElement('div');
           card.className = 'apple-card';
           card.setAttribute('data-book-id', book.id);
+          card.style.cursor = 'pointer';
 
           const coverSrc = book.cover || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140" fill="%23222"><rect width="100" height="140"/><text x="50%" y="50%" fill="%23888" dominant-baseline="middle" text-anchor="middle">Sem Capa</text></svg>';
 
@@ -2330,23 +2343,22 @@
               </div>
               <div class="apple-card-rank">#${book.order || '•'}</div>
               <div class="apple-card-time">⏱️ ${book.readingTime || '2h'}</div>
-              ${savedProgress > 0 ? `
+              ${memProg > 0 ? `
                 <div class="apple-card-progress-bar">
-                  <div class="apple-card-progress-fill" style="width: ${savedProgress}%"></div>
+                  <div class="apple-card-progress-fill" style="width: ${memProg}%"></div>
                 </div>
               ` : ''}
             </div>
             <div class="apple-card-info">
               <div class="apple-card-title">${escapeHtml(book.title)}</div>
               <div class="apple-card-subtitle">
-                ${savedProgress > 0 
-                  ? `<span style="color: #FFFFFF; font-weight: 600;">Pág. ${savedPage || '1'}/${book.totalPages}</span> • <span>${Math.round(savedProgress)}% lido</span>` 
+                ${memProg > 0 
+                  ? `<span style="color: #FFFFFF; font-weight: 600;">Pág. ${memPg}/${book.totalPages}</span> • <span>${Math.round(memProg)}% lido</span>` 
                   : `<span>${escapeHtml(book.difficulty || 'Fácil')}</span> • <span>${book.totalPages} págs</span>`}
               </div>
             </div>
           `;
 
-          // Hover dinâmico apenas se for dispositivo com mouse (evita travar o toque no Android)
           if (window.matchMedia && window.matchMedia('(hover: hover)').matches) {
             card.onmouseenter = () => {
               document.querySelectorAll('.apple-card').forEach(c => c.classList.remove('active-preview'));
@@ -2355,18 +2367,21 @@
             };
           }
 
-          // Clique ou toque no celular abre o leitor instantaneamente
-          card.onclick = (e) => {
+          card.addEventListener('click', (e) => {
             e.preventDefault();
             openBook(book.id);
-          };
+          });
 
           track.appendChild(card);
         });
 
         shelfSectionsContainer.appendChild(secElem);
       });
-    }    // CARREGADOR SOB DEMANDA DE CONTEÚDO (APENAS O LIVRO ABERTO: ~150KB A 350KB)
+    }
+
+    // ==========================================================================
+    // CARREGADOR SOB DEMANDA DE CONTEÚDO (APENAS O LIVRO ABERTO: ~150KB A 350KB)
+    // ==========================================================================
     function loadBookContent(book, callback) {
       if (book.content && book.content.length > 0) {
         callback();
@@ -2379,12 +2394,11 @@
         return;
       }
 
-      // Mostra leitor com animação de carregamento elegante
       readerContent.innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 120px 20px; text-align:center;">
           <div style="width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
           <div style="font-size: 18px; font-weight: 700; color: #FFFFFF;">Abrindo "${escapeHtml(book.title)}"...</div>
-          <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Carregando páginas em alta velocidade</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Carregando leitura em alta velocidade</div>
         </div>
       `;
       viewShelf.style.display = 'none';
@@ -2399,7 +2413,7 @@
           book.content = window[globalVar];
           callback();
         } else {
-          readerContent.innerHTML = '<div style="color: #FF5555; padding: 40px; text-align: center;">Erro ao carregar o conteúdo do livro. Tente novamente.</div>';
+          readerContent.innerHTML = '<div style="color: #FF5555; padding: 40px; text-align: center;">Erro ao carregar o conteúdo do livro. Toque em Voltar e tente novamente.</div>';
         }
       };
       script.onerror = () => {
@@ -2464,13 +2478,10 @@
         viewReader.style.display = 'block';
         const appHeader = document.querySelector('header.app-header');
         if (appHeader) appHeader.style.display = 'none';
-        statusPill.style.display = 'flex';
+        if (statusPill) statusPill.style.display = 'flex';
 
-        localStorage.setItem('mode_shelf', '0');
-        localStorage.setItem('last_active_book_id', book.id);
-
-        const savedPage = localStorage.getItem(`page_${book.id}`) || '1';
-        const savedScroll = parseInt(localStorage.getItem(`scroll_${book.id}`) || '0');
+        const savedPage = sessionMemory.page[book.id] || 1;
+        const savedScroll = sessionMemory.scroll[book.id] || 0;
         const subbarPage = document.getElementById('subbar-page');
         if (subbarPage) {
           subbarPage.textContent = `📖 Pág. ${savedPage}/${book.totalPages || '?'}`;
@@ -2478,24 +2489,26 @@
 
         const restoreScroll = () => {
           const offset = window.innerWidth <= 768 ? -56 : -90;
-          if (savedPage) {
+          if (savedPage && savedPage > 1) {
             const targetP = document.querySelector(`#reader-content p.book-p[data-page="${savedPage}"]`);
             if (targetP) {
               targetP.scrollIntoView({ behavior: 'instant', block: 'start' });
-              window.scrollBy(0, offset); // compensa a barra fixa flutuante
+              window.scrollBy(0, offset);
               updateProgress();
               return;
             }
           }
           if (savedScroll > 0) {
             window.scrollTo({ top: savedScroll, behavior: 'instant' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'instant' });
           }
           updateProgress();
         };
 
         requestAnimationFrame(() => {
           restoreScroll();
-          setTimeout(restoreScroll, 350);
+          setTimeout(restoreScroll, 200);
         });
       });
     }
@@ -2531,48 +2544,46 @@
       });
     }
 
-    tocSearch.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase();
-      document.querySelectorAll('#drawer-toc-list .toc-item').forEach(el => {
-        const text = el.textContent.toLowerCase();
-        el.style.display = text.includes(q) ? 'block' : 'none';
+    if (tocSearch) {
+      tocSearch.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        document.querySelectorAll('#drawer-toc-list .toc-item').forEach(el => {
+          const text = el.textContent.toLowerCase();
+          el.style.display = text.includes(q) ? 'block' : 'none';
+        });
       });
-    });
+    }
 
     function toggleToc(open) {
-      tocDrawer.classList.toggle('open', open);
-      overlay.classList.toggle('active', open);
+      if (tocDrawer) tocDrawer.classList.toggle('open', open);
+      if (overlay) overlay.classList.toggle('active', open);
       if (open && tocSearch) {
         tocSearch.value = '';
         document.querySelectorAll('#drawer-toc-list .toc-item').forEach(el => el.style.display = 'block');
       }
     }
-    btnToc.onclick = () => toggleToc(true);
-    
-    btnCloseToc.onclick = () => toggleToc(false);
-    overlay.onclick = () => {
-      toggleToc(false);
-      toggleNotes(false);
-      
-    };
+    if (btnToc) btnToc.onclick = () => toggleToc(true);
+    if (btnCloseToc) btnCloseToc.onclick = () => toggleToc(false);
+
+    if (overlay) {
+      overlay.onclick = () => {
+        toggleToc(false);
+        toggleNotes(false);
+      };
+    }
 
     // ==========================================================================
-    // SISTEMA DE MARCAÇÕES & CADERNO DE ANOTAÇÕES
+    // SISTEMA DE MARCAÇÕES & CADERNO DE ANOTAÇÕES (EM MEMÓRIA DA SESSÃO)
     // ==========================================================================
     function loadAndApplyHighlights(bookId) {
-      try {
-        const raw = localStorage.getItem(`highlights_${bookId}`);
-        currentHighlights = raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        currentHighlights = [];
-      }
+      currentHighlights = sessionMemory.highlights[bookId] || [];
       renderNotesDrawer();
       applyHighlightsToDOM();
     }
 
     function saveHighlights() {
       if (!state.currentBook) return;
-      localStorage.setItem(`highlights_${state.currentBook.id}`, JSON.stringify(currentHighlights));
+      sessionMemory.highlights[state.currentBook.id] = currentHighlights;
       renderNotesDrawer();
     }
 
@@ -2580,88 +2591,78 @@
       if (!currentHighlights || currentHighlights.length === 0) return;
       const paras = document.querySelectorAll('#reader-content p.book-p');
       currentHighlights.forEach(hl => {
+        if (!hl || !hl.text) return;
         for (let p of paras) {
-          if (p.textContent.includes(hl.text) && !p.querySelector(`mark[data-hl-id="${hl.id}"]`)) {
+          if (p.textContent && p.textContent.includes(hl.text) && !p.querySelector(`mark[data-hl-id="${hl.id}"]`)) {
             const escaped = escapeRegex(hl.text);
             const markHtml = `<mark class="book-highlight hl-${hl.color}" data-hl-id="${hl.id}" title="Clique para ver no Caderno de Anotações">${escapeHtml(hl.text)}</mark>`;
             p.innerHTML = p.innerHTML.replace(new RegExp(escaped, 'g'), markHtml);
-            break;
           }
         }
       });
 
-      document.querySelectorAll('mark.book-highlight').forEach(mark => {
-        mark.onclick = (e) => {
+      document.querySelectorAll('mark.book-highlight').forEach(m => {
+        m.onclick = (e) => {
           e.stopPropagation();
-          const hlId = mark.getAttribute('data-hl-id');
-          toggleNotes(true);
-          const card = document.getElementById(`card-${hlId}`);
-          if (card) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            card.style.borderColor = 'var(--accent)';
-            setTimeout(() => card.style.borderColor = '', 2000);
-          }
+          const hlId = m.getAttribute('data-hl-id');
+          toggleNotes(true, hlId);
         };
       });
     }
 
     function renderNotesDrawer() {
-      notesCount.textContent = currentHighlights.length;
-      
-      notesTotalLabel.textContent = `${currentHighlights.length} destaques salvos`;
+      if (!notesListContainer) return;
       notesListContainer.innerHTML = '';
+      const count = currentHighlights.length;
+      if (notesCount) notesCount.textContent = count;
+      if (notesTotalLabel) notesTotalLabel.textContent = `${count} anotações salvas`;
 
-      if (currentHighlights.length === 0) {
-        notesListContainer.innerHTML = `
-          <div style="text-align: center; color: var(--text-muted); padding: 40px 10px;">
-            <div style="font-size: 32px; margin-bottom: 12px;">🖍️</div>
-            <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Nenhum destaque ainda</div>
-            <div style="font-size: 13px;">Selecione qualquer trecho para marcar e guardar suas notas aqui!</div>
-          </div>
-        `;
+      if (count === 0) {
+        notesListContainer.innerHTML = '<div style="color: var(--text-muted); padding: 30px 10px; text-align: center; font-size: 13.5px;">Nenhum destaque ou nota feita nesta sessão.<br><br>Selecione qualquer trecho no texto para destacar em cores e adicionar reflexões.</div>';
         return;
       }
 
       currentHighlights.forEach((hl, idx) => {
         const card = document.createElement('div');
-        card.className = `note-card border-${hl.color}`;
-        card.id = `card-${hl.id}`;
+        card.className = `note-card hl-${hl.color}`;
+        card.id = `note-card-${hl.id}`;
 
         card.innerHTML = `
-          <div class="note-quote" title="Clique para ir até o trecho no livro">"${escapeHtml(hl.text)}"</div>
-          <div class="note-meta">
+          <div class="note-card-meta">
             <span>Pág. ${hl.page} • ${hl.date || 'Hoje'}</span>
-            <button class="note-del-btn" title="Excluir destaque">🗑️ Remover</button>
+            <button class="note-card-del" title="Remover destaque">Excluir</button>
           </div>
-          <input type="text" class="note-comment-input" placeholder="Adicionar nota ou reflexão pessoal..." value="${escapeHtml(hl.note || '')}" />
+          <div class="note-card-text">"${escapeHtml(hl.text)}"</div>
+          <textarea class="note-comment-input" placeholder="Adicione sua reflexão prática...">${escapeHtml(hl.comment || '')}</textarea>
         `;
 
-        card.querySelector('.note-quote').onclick = () => {
-          const mark = document.querySelector(`mark[data-hl-id="${hl.id}"]`);
-          if (mark) {
-            mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            mark.style.outline = '3px solid var(--accent)';
-            setTimeout(() => mark.style.outline = '', 2500);
-            toggleNotes(false);
-          }
-        };
-
-        const input = card.querySelector('.note-comment-input');
-        input.onchange = (e) => {
-          hl.note = e.target.value;
+        const txtArea = card.querySelector('.note-comment-input');
+        txtArea.oninput = (e) => {
+          hl.comment = e.target.value;
           saveHighlights();
         };
 
-        card.querySelector('.note-del-btn').onclick = () => {
-          if (confirm('Deseja remover esta anotação?')) {
-            currentHighlights.splice(idx, 1);
+        const btnDel = card.querySelector('.note-card-del');
+        btnDel.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm('Deseja excluir esta anotação?')) {
+            currentHighlights = currentHighlights.filter(h => h.id !== hl.id);
             saveHighlights();
             const mark = document.querySelector(`mark[data-hl-id="${hl.id}"]`);
             if (mark) {
-              const parent = mark.parentNode;
-              parent.replaceChild(document.createTextNode(mark.textContent), mark);
-              parent.normalize();
+              const textNode = document.createTextNode(mark.textContent);
+              mark.parentNode.replaceChild(textNode, mark);
             }
+          }
+        };
+
+        card.onclick = () => {
+          const mark = document.querySelector(`mark[data-hl-id="${hl.id}"]`);
+          if (mark) {
+            mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            mark.style.outline = '2px solid var(--accent)';
+            setTimeout(() => mark.style.outline = 'none', 1800);
+            toggleNotes(false);
           }
         };
 
@@ -2669,86 +2670,125 @@
       });
     }
 
-    function toggleNotes(open) {
-      notesDrawer.classList.toggle('open', open);
-      overlay.classList.toggle('active', open);
-      
-    }
-    btnNotes.onclick = () => toggleNotes(true);
-    
-    btnCloseNotes.onclick = () => toggleNotes(false);
+    function toggleNotes(open, targetHlId = null) {
+      if (notesDrawer) notesDrawer.classList.toggle('open', open);
+      if (overlay) overlay.classList.toggle('active', open);
 
-    btnExportNotes.onclick = () => {
-      if (currentHighlights.length === 0) {
-        alert('Nenhuma anotação para copiar.');
+      if (open && targetHlId) {
+        setTimeout(() => {
+          const card = document.getElementById(`note-card-${targetHlId}`);
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.style.borderColor = 'var(--accent)';
+            setTimeout(() => card.style.borderColor = 'var(--border)', 1500);
+            const input = card.querySelector('.note-comment-input');
+            if (input) input.focus();
+          }
+        }, 250);
+      }
+    }
+
+    if (btnNotes) btnNotes.onclick = () => toggleNotes(true);
+    if (btnCloseNotes) btnCloseNotes.onclick = () => toggleNotes(false);
+
+    if (btnExportNotes) {
+      btnExportNotes.onclick = () => {
+        if (!currentHighlights || currentHighlights.length === 0) {
+          alert('Você ainda não fez nenhum destaque nesta sessão.');
+          return;
+        }
+        let exportText = `Caderno de Anotações 7D — ${state.currentBook ? state.currentBook.title : ''}
+
+`;
+        currentHighlights.forEach((hl, idx) => {
+          exportText += `[#${idx + 1}] Pág. ${hl.page}:
+"${hl.text}"
+`;
+          if (hl.comment) exportText += `Nota: ${hl.comment}
+`;
+          exportText += `
+
+`;
+        });
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(exportText).then(() => {
+            alert('Anotações copiadas para a Área de Transferência!');
+          }).catch(() => {
+            alert(exportText);
+          });
+        } else {
+          alert(exportText);
+        }
+      };
+    }
+
+    // CAPTURA DE SELEÇÃO & POPOVER DE MARCAÇÃO
+    document.addEventListener('selectionchange', () => {
+      if (viewReader && viewReader.style.display === 'none') {
+        if (selectionPopover) selectionPopover.style.display = 'none';
         return;
       }
-      let exportText = `# Caderno de Anotações — ${state.currentBook.title}\n\n`;
-      currentHighlights.forEach(hl => {
-        exportText += `> "${hl.text}"\n`;
-        exportText += `— Pág. ${hl.page}`;
-        if (hl.note) exportText += ` | Nota: ${hl.note}`;
-        exportText += `\n\n`;
-      });
-      navigator.clipboard.writeText(exportText).then(() => {
-        alert('Todas as anotações foram copiadas para a Área de Transferência! Pode colar no Notion, Obsidian ou Bloco de Notas.');
-      });
-    };
 
-    // CAPTURA DA SELEÇÃO DO MOUSE & POPOVER
-    document.addEventListener('selectionchange', () => {
-      if (viewReader.style.display === 'none') return;
       const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || sel.toString().trim().length < 2) {
-        if (!selectionPopover.matches(':hover')) {
-          selectionPopover.style.display = 'none';
+      if (!sel || sel.isCollapsed || !sel.rangeCount) {
+        if (selectionPopover && selectionPopover.style.display !== 'none') {
+          setTimeout(() => {
+            const check = window.getSelection();
+            if (!check || check.isCollapsed) {
+              if (selectionPopover) selectionPopover.style.display = 'none';
+            }
+          }, 350);
         }
         return;
       }
 
       const text = sel.toString().trim();
+      if (text.length < 2) {
+        if (selectionPopover) selectionPopover.style.display = 'none';
+        return;
+      }
+
       const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      
-      const common = range.commonAncestorContainer;
-      if (!readerContent.contains(common.nodeType === 1 ? common : common.parentNode)) {
-        selectionPopover.style.display = 'none';
+      const container = range.commonAncestorContainer;
+      const p = container.nodeType === 1 ? container.closest('p.book-p') : container.parentElement?.closest('p.book-p');
+      if (!p) {
+        if (selectionPopover) selectionPopover.style.display = 'none';
         return;
       }
 
       activeSelectedRange = range.cloneRange();
       activeSelectedText = text;
+      activeSelectedPage = p.getAttribute('data-page') || '1';
 
-      let pElem = range.startContainer;
-      while (pElem && pElem !== readerContent && (!pElem.classList || !pElem.classList.contains('book-p'))) {
-        pElem = pElem.parentNode;
+      const rect = range.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) return;
+
+      if (selectionPopover) {
+        selectionPopover.style.top = `${window.scrollY + rect.top - 54}px`;
+        selectionPopover.style.left = `${Math.max(12, Math.min(window.innerWidth - 240, window.scrollX + rect.left + (rect.width / 2) - 100))}px`;
+        selectionPopover.style.display = 'flex';
       }
-      activeSelectedPage = pElem && pElem.getAttribute('data-page') ? pElem.getAttribute('data-page') : '1';
-
-      const popTop = window.scrollY + rect.top - 52;
-      const popWidth = selectionPopover.offsetWidth || 260;
-      const popLeft = Math.max(12, Math.min(window.innerWidth - popWidth - 12, window.scrollX + rect.left + (rect.width / 2) - (popWidth / 2)));
-
-      selectionPopover.style.top = `${popTop}px`;
-      selectionPopover.style.left = `${popLeft}px`;
-      selectionPopover.style.display = 'flex';
     });
 
-    document.querySelectorAll('.pop-color-dot').forEach(dot => {
-      dot.onclick = () => {
-        const color = dot.getAttribute('data-color');
-        createHighlight(color);
+    document.querySelectorAll('.pop-btn.color-dot').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const color = btn.getAttribute('data-color');
+        createHighlightFromSelection(color, false);
       };
     });
 
-    popBtnNote.onclick = () => {
-      createHighlight('amber', true);
-    };
+    if (popBtnNote) {
+      popBtnNote.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        createHighlightFromSelection('amber', true);
+      };
+    }
 
-
-
-    function createHighlight(color, openNote = false) {
-      if (!activeSelectedText || !state.currentBook) return;
+    function createHighlightFromSelection(color, openNoteImmediately = false) {
+      if (!activeSelectedRange || !activeSelectedText || !state.currentBook) return;
 
       const hlId = 'hl_' + Date.now();
       const newHl = {
@@ -2756,95 +2796,91 @@
         text: activeSelectedText,
         color: color,
         page: activeSelectedPage,
-        note: '',
-        date: new Date().toLocaleDateString('pt-BR')
+        date: new Date().toLocaleDateString('pt-BR'),
+        comment: ''
       };
 
       currentHighlights.push(newHl);
       saveHighlights();
 
       try {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-          const mark = document.createElement('mark');
-          mark.className = `book-highlight hl-${color}`;
-          mark.setAttribute('data-hl-id', hlId);
-          mark.textContent = activeSelectedText;
-          mark.onclick = (e) => {
-            e.stopPropagation();
-            toggleNotes(true);
-          };
-          const range = sel.getRangeAt(0);
-          range.deleteContents();
-          range.insertNode(mark);
-        }
-      } catch (e) {
+        const mark = document.createElement('mark');
+        mark.className = `book-highlight hl-${color}`;
+        mark.setAttribute('data-hl-id', hlId);
+        mark.title = 'Clique para ver no Caderno de Anotações';
+        mark.textContent = activeSelectedText;
+
+        activeSelectedRange.deleteContents();
+        activeSelectedRange.insertNode(mark);
+
+        mark.onclick = (e) => {
+          e.stopPropagation();
+          toggleNotes(true, hlId);
+        };
+      } catch (err) {
         applyHighlightsToDOM();
       }
 
-      selectionPopover.style.display = 'none';
-      window.getSelection().removeAllRanges();
+      window.getSelection()?.removeAllRanges();
+      if (selectionPopover) selectionPopover.style.display = 'none';
 
-      if (openNote) {
-        toggleNotes(true);
-        setTimeout(() => {
-          const card = document.getElementById(`card-${hlId}`);
-          if (card) {
-            const input = card.querySelector('.note-comment-input');
-            if (input) input.focus();
-          }
-        }, 300);
+      if (openNoteImmediately) {
+        toggleNotes(true, hlId);
       }
     }
 
     function escapeRegex(string) {
-      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return (string || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     // CONTROLES DE TIPOGRAFIA
-    btnFontInc.onclick = () => updateFontSize(state.fontSize + 2);
-    btnFontDec.onclick = () => updateFontSize(state.fontSize - 2);
+    if (btnFontInc) btnFontInc.onclick = () => updateFontSize(state.fontSize + 2);
+    if (btnFontDec) btnFontDec.onclick = () => updateFontSize(state.fontSize - 2);
 
-    btnFullscreen.onclick = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    };
-
-    // ZOOM DE IMAGEM
-    function openImageZoom(src) {
-      modalImg.src = src;
-      imageModal.classList.add('open');
-    }
-    imageModal.onclick = () => {
-      imageModal.classList.remove('open');
-      modalImg.src = '';
-    };
-    if (btnCloseModal) {
-      btnCloseModal.onclick = (e) => {
-        e.stopPropagation();
-        imageModal.classList.remove('open');
-        modalImg.src = '';
+    if (btnFullscreen) {
+      btnFullscreen.onclick = () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
       };
     }
 
-    // VOLTAR PARA A ESTANTE (NAVEGAÇÃO SAAS LIMPA E INSTANTÂNEA)
+    // ZOOM DE IMAGEM
+    function openImageZoom(src) {
+      if (!modalImg || !imageModal) return;
+      modalImg.src = src;
+      imageModal.classList.add('open');
+    }
+    if (imageModal) {
+      imageModal.onclick = () => {
+        imageModal.classList.remove('open');
+        if (modalImg) modalImg.src = '';
+      };
+    }
+    if (btnCloseModal) {
+      btnCloseModal.onclick = (e) => {
+        e.stopPropagation();
+        if (imageModal) imageModal.classList.remove('open');
+        if (modalImg) modalImg.src = '';
+      };
+    }
+
+    // VOLTAR PARA A ESTANTE
     function goToShelf(pushHistory = true) {
-      selectionPopover.style.display = 'none';
+      if (selectionPopover) selectionPopover.style.display = 'none';
       toggleNotes(false);
       toggleToc(false);
-      viewReader.style.display = 'none';
-      viewShelf.style.display = 'block';
+      if (viewReader) viewReader.style.display = 'none';
+      if (viewShelf) viewShelf.style.display = 'block';
       
       const appHeader = document.querySelector('header.app-header');
       if (appHeader) appHeader.style.display = 'flex';
 
-      btnBackShelf.style.display = 'none';
-      statusPill.style.display = 'none';
-      document.title = 'Biblioteca 7D — Leitor Pro & Absorção Mental';
-      localStorage.setItem('mode_shelf', '1');
+      if (btnBackShelf) btnBackShelf.style.display = 'none';
+      if (statusPill) statusPill.style.display = 'none';
+      document.title = 'Biblioteca 7D — Leitor Pro';
       
       if (pushHistory) {
         history.pushState(null, 'Biblioteca 7D', '#/');
@@ -2854,9 +2890,7 @@
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     if (btnBackShelf) btnBackShelf.onclick = () => goToShelf(true);
-    if (btnHome) btnHome.onclick = () => goToShelf(true);
 
-    // Suporte ao Botão Voltar do Navegador e do Mouse
     window.addEventListener('popstate', (e) => {
       const hash = window.location.hash;
       if (hash && hash.startsWith('#/livro/')) {
@@ -2867,10 +2901,10 @@
       }
     });
 
-    // SCROLL & PROGRESSO ULTRA-RÁPIDO (CÁLCULO MATEMÁTICO SEM REFLOW)
+    // SCROLL & PROGRESSO
     let scrollRafId = null;
     function updateProgress() {
-      if (!state.currentBook || viewReader.style.display === 'none') return;
+      if (!state.currentBook || (viewReader && viewReader.style.display === 'none')) return;
 
       if (scrollRafId) return;
       scrollRafId = requestAnimationFrame(() => {
@@ -2880,28 +2914,27 @@
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
         const progress = docHeight > 0 ? Math.min(100, Math.max(0, (scrollY / docHeight) * 100)) : 0;
 
-        progressBar.style.width = `${progress}%`;
-        statusPercent.textContent = `${Math.round(progress)}% lido`;
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        if (statusPercent) statusPercent.textContent = `${Math.round(progress)}% lido`;
 
         const totalPgs = state.currentBook.totalPages || 1;
         const currentPg = Math.min(totalPgs, Math.max(1, Math.round((progress / 100) * totalPgs)));
         const pageText = `Pág. ${currentPg}/${totalPgs}`;
 
-        statusPage.textContent = pageText;
+        if (statusPage) statusPage.textContent = pageText;
         const subbarPage = document.getElementById('subbar-page');
         if (subbarPage) {
           subbarPage.textContent = `📖 ${pageText}`;
         }
 
-        localStorage.setItem(`scroll_${state.currentBook.id}`, scrollY);
-        localStorage.setItem(`page_${state.currentBook.id}`, currentPg);
-        localStorage.setItem(`progress_${state.currentBook.id}`, progress);
+        sessionMemory.scroll[state.currentBook.id] = scrollY;
+        sessionMemory.page[state.currentBook.id] = currentPg;
+        sessionMemory.progress[state.currentBook.id] = progress;
       });
     }
 
     window.addEventListener('scroll', updateProgress, { passive: true });
 
-    // Atalho de Teclado: Esc para Voltar à Estante
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
       if (e.key === 'Escape') {
@@ -2911,7 +2944,7 @@
           toggleNotes(false);
         } else if (imageModal && imageModal.classList.contains('open')) {
           imageModal.classList.remove('open');
-        } else if (viewReader.style.display === 'block') {
+        } else if (viewReader && viewReader.style.display === 'block') {
           goToShelf(true);
         }
       }
@@ -2923,23 +2956,31 @@
       }[m]));
     }
 
-    // Limpeza de cache antigo para Android
-    const APP_VERSION = '20261104_v2';
-    if (localStorage.getItem('lib_app_ver') !== APP_VERSION) {
-      localStorage.removeItem('last_active_book_id');
-      localStorage.setItem('mode_shelf', '1');
-      localStorage.setItem('lib_app_ver', APP_VERSION);
-    }
+    // ==========================================================================
+    // INICIALIZAÇÃO ROBUSTA COM AUTO-RETRY (NUNCA FALHA)
+    // ==========================================================================
+    function boot() {
+      if (!state.books || state.books.length === 0) {
+        setTimeout(boot, 40);
+        return;
+      }
 
-    // Roteamento Inicial: Sempre abre a Estante de Livros Apple TV
-    const initialHash = window.location.hash;
-
-    if (initialHash && initialHash.startsWith('#/livro/')) {
-      const bId = initialHash.replace('#/livro/', '');
-      openBook(bId, false);
-    } else {
+      initAppleHero();
       renderShelf();
+
+      const initialHash = window.location.hash;
+      if (initialHash && initialHash.startsWith('#/livro/')) {
+        const bId = initialHash.replace('#/livro/', '');
+        openBook(bId, false);
+      }
     }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+
   </script>
 </body>
 </html>
