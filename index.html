@@ -2640,95 +2640,103 @@
     const audioEngine = {
       isSpeaking: false,
       currentParaIdx: 0,
-      currentSentenceIdx: 0,
-      sentences: [],
       paragraphs: [],
-      selectedVoice: null,
-      utterance: null,
+      audioPlayer: null,
+      audioCache: new Map(),
+      customText: null,
+      activeRequestId: 0,
 
-      getMaleVoice() {
-        if (!('speechSynthesis' in window)) return null;
-        const voices = window.speechSynthesis.getVoices();
-        if (!voices || voices.length === 0) return null;
+      init() {
+        if (!this.audioPlayer) {
+          this.audioPlayer = new Audio();
+          this.audioPlayer.preload = 'auto';
 
-        const ptVoices = voices.filter(v => v.lang === 'pt-BR' || v.lang.startsWith('pt'));
-        if (ptVoices.length === 0) return null;
+          this.audioPlayer.onended = () => {
+            if (!this.isSpeaking) return;
+            if (this.customText) {
+              this.stop();
+              return;
+            }
+            this.currentParaIdx++;
+            this.playCurrentParagraph();
+          };
 
-        // 1. Procura vozes masculinas explícitas no Windows, Android, Mac ou Edge
-        const maleKeywords = ['daniel', 'antonio', 'felipe', 'jorge', 'ricardo', 'nicolau', 'male', 'homem', 'jab', 'yeb', 'ptd', 'br-pt-x'];
-        const explicitMale = ptVoices.find(v => {
-          const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
-          return maleKeywords.some(kw => lower.includes(kw));
-        });
-        if (explicitMale) return explicitMale;
-
-        // 2. Procura vozes que NÃO sejam femininas
-        const femaleKeywords = ['maria', 'luciana', 'francisca', 'leticia', 'fernanda', 'female', 'mulher', 'afs', 'heloisa', 'vitoria'];
-        const nonFemale = ptVoices.find(v => {
-          const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
-          return !femaleKeywords.some(kw => lower.includes(kw));
-        });
-        if (nonFemale) return nonFemale;
-
-        // 3. Fallback: Se o celular tiver apenas uma voz (ex: Google pt-BR feminino padrão), usa ela e baixamos o tom
-        return ptVoices[1] || ptVoices[0];
+          this.audioPlayer.onerror = (e) => {
+            console.warn('Player de áudio acionando fallback:', e);
+            if (!this.isSpeaking) return;
+            if (this.customText) {
+              this.fallbackSpeechSynthesisText(this.customText);
+            } else {
+              this.fallbackSpeechSynthesisParagraph();
+            }
+          };
+        }
       },
 
       initVoices() {
-        if (!('speechSynthesis' in window)) return;
-        const update = () => {
-          this.selectedVoice = this.getMaleVoice();
-        };
-        update();
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-          window.speechSynthesis.onvoiceschanged = update;
-        }
+        this.init();
       },
 
       cleanText(txt) {
         if (!txt) return '';
         return txt
-          .replace(/<[^>]+>/g, '')
+          .replace(/<[^>]+>/g, ' ')
           .replace(/P[áa]g\.\s*\d+/gi, '')
+          .replace(/(\w+)-\s+(\w+)/g, '$1$2')
           .replace(/[*_#~`]/g, '')
           .replace(/&quot;/g, '"').replace(/&amp;/g, ' e ').replace(/&lt;/g, '').replace(/&gt;/g, '')
           .replace(/\s+/g, ' ')
           .trim();
       },
 
-      splitIntoSentences(text) {
+      async fetchAudioBlob(text) {
         const cleaned = this.cleanText(text);
-        if (!cleaned) return [];
-        if (cleaned.length <= 280) return [cleaned];
-
-        const parts = cleaned.split(/(?<=[.!?])\s+/);
-        const result = [];
-        let current = '';
-        for (const part of parts) {
-          if ((current + ' ' + part).length > 250 && current.length > 0) {
-            result.push(current.trim());
-            current = part;
-          } else {
-            current = current ? (current + ' ' + part) : part;
-          }
+        if (!cleaned) return null;
+        if (this.audioCache.has(cleaned)) {
+          return this.audioCache.get(cleaned);
         }
-        if (current.trim()) result.push(current.trim());
-        return result.length > 0 ? result : [cleaned];
+
+        try {
+          const resp = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: cleaned,
+              voice: 'pt-BR-AntonioNeural',
+              rate: '-2%',
+              pitch: '-3Hz'
+            })
+          });
+
+          if (resp.ok) {
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            this.audioCache.set(cleaned, url);
+            return url;
+          }
+        } catch (err) {
+          console.warn('API /api/tts indisponível, usando fallback:', err);
+        }
+        return null;
+      },
+
+      preloadParagraph(idx) {
+        if (idx < 0 || idx >= this.paragraphs.length) return;
+        const p = this.paragraphs[idx];
+        if (!p) return;
+        const text = this.cleanText(p.textContent);
+        if (text && !this.audioCache.has(text)) {
+          this.fetchAudioBlob(text).catch(() => {});
+        }
       },
 
       startFromVisible() {
-        if (!('speechSynthesis' in window)) {
-          alert('Seu navegador não possui suporte à síntese de voz.');
-          return;
-        }
-
+        this.init();
+        this.customText = null;
         this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
         if (this.paragraphs.length === 0) return;
 
-        window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
+        this.stop();
 
         const offset = 90;
         let startIdx = this.paragraphs.findIndex(p => {
@@ -2740,22 +2748,18 @@
         this.currentParaIdx = startIdx;
         this.isSpeaking = true;
         this.updateBtnUI();
-        this.speakCurrentParagraph();
+
+        // Destrava canal de áudio imediatamente no toque do usuário
+        this.audioPlayer.play().then(() => this.audioPlayer.pause()).catch(() => {});
+
+        this.playCurrentParagraph();
       },
 
       speakCustomSelection(text, startParagraph) {
-        if (!('speechSynthesis' in window)) {
-          alert('Seu navegador não possui suporte à síntese de voz.');
-          return;
-        }
-
+        this.init();
         this.stop();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
 
         this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
-        
         if (startParagraph) {
           const idx = this.paragraphs.indexOf(startParagraph);
           this.currentParaIdx = idx !== -1 ? idx : 0;
@@ -2763,17 +2767,34 @@
           startParagraph.classList.add('tts-reading-now');
         }
 
+        this.customText = text;
         this.isSpeaking = true;
         this.updateBtnUI();
 
-        this.sentences = this.splitIntoSentences(text);
-        if (this.sentences.length === 0) return;
+        // Destrava áudio no toque
+        this.audioPlayer.play().then(() => this.audioPlayer.pause()).catch(() => {});
 
-        this.currentSentenceIdx = 0;
-        this.speakSentence();
+        this.playText(text);
       },
 
-      speakCurrentParagraph() {
+      async playText(text) {
+        if (!this.isSpeaking) return;
+        const reqId = ++this.activeRequestId;
+        const audioUrl = await this.fetchAudioBlob(text);
+        if (!this.isSpeaking || reqId !== this.activeRequestId) return;
+
+        if (audioUrl) {
+          this.audioPlayer.src = audioUrl;
+          this.audioPlayer.play().catch(e => {
+            console.warn('Erro ao reproduzir áudio neural selecionado:', e);
+            this.fallbackSpeechSynthesisText(text);
+          });
+        } else {
+          this.fallbackSpeechSynthesisText(text);
+        }
+      },
+
+      async playCurrentParagraph() {
         if (!this.isSpeaking || this.currentParaIdx >= this.paragraphs.length) {
           this.stop();
           return;
@@ -2793,77 +2814,82 @@
           p.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        this.sentences = this.splitIntoSentences(p.textContent);
-        if (this.sentences.length === 0) {
+        const rawText = p.textContent;
+        const cleaned = this.cleanText(rawText);
+        if (!cleaned) {
           this.currentParaIdx++;
-          this.speakCurrentParagraph();
+          this.playCurrentParagraph();
           return;
         }
 
-        this.currentSentenceIdx = 0;
-        this.speakSentence();
+        // Pré-carrega o próximo parágrafo silenciosamente em background
+        this.preloadParagraph(this.currentParaIdx + 1);
+
+        const reqId = ++this.activeRequestId;
+        const audioUrl = await this.fetchAudioBlob(cleaned);
+        if (!this.isSpeaking || reqId !== this.activeRequestId) return;
+
+        if (audioUrl) {
+          this.audioPlayer.src = audioUrl;
+          this.audioPlayer.play().catch(e => {
+            console.warn('Erro ao reproduzir áudio neural do parágrafo:', e);
+            this.fallbackSpeechSynthesisParagraph();
+          });
+        } else {
+          this.fallbackSpeechSynthesisParagraph();
+        }
       },
 
-      speakSentence() {
-        if (!this.isSpeaking) return;
-
-        if (this.currentSentenceIdx >= this.sentences.length) {
-          this.currentParaIdx++;
-          setTimeout(() => {
-            if (this.isSpeaking) this.speakCurrentParagraph();
-          }, 280);
-          return;
-        }
-
-        const sentenceText = this.sentences[this.currentSentenceIdx];
-        if (!sentenceText || sentenceText.trim().length === 0) {
-          this.currentSentenceIdx++;
-          this.speakSentence();
-          return;
-        }
-
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-
-        const u = new SpeechSynthesisUtterance(sentenceText);
-        
-        // Sempre busca dinamicamente a melhor voz masculina
-        const voice = this.getMaleVoice();
-        if (voice) {
-          u.voice = voice;
-          // Se a voz selecionada tiver nome feminino (porque o aparelho só possui 1 voz instalada),
-          // forçamos o pitch em 0.58 para transformar em voz masculina/barítono profunda!
-          const isFemale = /maria|luciana|francisca|leticia|female|mulher|afs/i.test(voice.name);
-          u.pitch = isFemale ? 0.56 : 0.78;
-        } else {
-          u.pitch = 0.65;
-        }
-
+      fallbackSpeechSynthesisText(text) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(this.cleanText(text));
         u.lang = 'pt-BR';
-        u.rate = 0.94; // Ritmo pausado e firme
+        u.rate = 0.94;
+        u.pitch = 0.52;
+        u.onend = () => {
+          if (this.isSpeaking) this.stop();
+        };
+        u.onerror = () => {
+          if (this.isSpeaking) this.stop();
+        };
+        window.speechSynthesis.speak(u);
+      },
 
+      fallbackSpeechSynthesisParagraph() {
+        if (!('speechSynthesis' in window) || !this.isSpeaking) return;
+        const p = this.paragraphs[this.currentParaIdx];
+        if (!p) {
+          this.stop();
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(this.cleanText(p.textContent));
+        u.lang = 'pt-BR';
+        u.rate = 0.94;
+        u.pitch = 0.52;
         u.onend = () => {
           if (this.isSpeaking) {
-            this.currentSentenceIdx++;
-            this.speakSentence();
+            this.currentParaIdx++;
+            this.playCurrentParagraph();
           }
         };
-
-        u.onerror = (e) => {
-          console.warn('Voz nativa avançando bloco:', e);
+        u.onerror = () => {
           if (this.isSpeaking) {
-            this.currentSentenceIdx++;
-            setTimeout(() => this.speakSentence(), 200);
+            this.currentParaIdx++;
+            this.playCurrentParagraph();
           }
         };
-
-        this.utterance = u;
         window.speechSynthesis.speak(u);
       },
 
       stop() {
         this.isSpeaking = false;
+        this.activeRequestId++;
+        if (this.audioPlayer) {
+          this.audioPlayer.pause();
+          this.audioPlayer.currentTime = 0;
+        }
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
         }
@@ -2889,7 +2915,7 @@
         } else {
           btn.innerHTML = '🔊 Ouvir';
           btn.classList.remove('speaking');
-          btn.title = 'Ouvir narração com voz masculina solene bíblica';
+          btn.title = 'Ouvir narração com voz masculina solene de narrador bíblico';
         }
       }
     };
