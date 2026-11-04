@@ -843,6 +843,40 @@
       gap: 6px;
     }
 
+    
+    /* Botão de Narração em Áudio & Destaque de Fala */
+    .btn-audio-play {
+      background: rgba(245, 158, 11, 0.12) !important;
+      border: 1px solid rgba(245, 158, 11, 0.35) !important;
+      color: var(--accent) !important;
+      font-weight: 700 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      transition: all 0.2s ease !important;
+      cursor: pointer;
+    }
+    .btn-audio-play:hover {
+      background: var(--accent) !important;
+      color: #000000 !important;
+    }
+    .btn-audio-play.speaking {
+      background: var(--accent) !important;
+      color: #000000 !important;
+      animation: pulseAudio 1.6s infinite !important;
+    }
+    @keyframes pulseAudio {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+    }
+    .tts-reading-now {
+      background: rgba(245, 158, 11, 0.14) !important;
+      border-left: 4px solid var(--accent) !important;
+      padding-left: 14px !important;
+      border-radius: 4px !important;
+      transition: background 0.3s ease, border-left 0.3s ease;
+    }
+
     /* ==========================================================================
        VIEW: LEITOR NEURO-ERGONÔMICO
        ========================================================================== */
@@ -1582,7 +1616,11 @@
         padding: 6px 12px !important;
         font-size: 12px !important;
       }
-      .reader-subbar #btn-toc {
+            .reader-subbar #btn-toc {
+        padding: 6px 9px;
+        font-size: 12px;
+      }
+      .reader-subbar #btn-reader-audio {
         padding: 6px 9px;
         font-size: 12px;
       }
@@ -1843,6 +1881,7 @@
       <div class="reader-bar-left">
         <button class="btn btn-back-primary" id="btn-back-reader" title="Voltar para a Estante de Livros">← Voltar à Estante</button>
         <button class="btn" id="btn-toc" title="Abrir Sumário do Livro">📑 Sumário</button>
+        <button class="btn btn-audio-play" id="btn-reader-audio" title="Ouvir Narração com Voz Solene">🔊 Ouvir</button>
         
         <!-- Indicador de Página no Formato Pág. 30/119 -->
         <div class="reader-page-badge" id="reader-page-badge" title="Página atual / Total de páginas">
@@ -2040,6 +2079,14 @@
       });
     }
 
+    const btnReaderAudio = document.getElementById('btn-reader-audio');
+    if (btnReaderAudio) {
+      btnReaderAudio.addEventListener('click', (e) => {
+        e.preventDefault();
+        audioEngine.toggle();
+      });
+    }
+
     if (heroBook3d) {
       heroBook3d.addEventListener('click', (e) => {
         e.preventDefault();
@@ -2225,7 +2272,8 @@
       state.books.sort((a, b) => (a.order || 99) - (b.order || 99));
 
       if (appleHeroFeatured.length === 0) {
-        initAppleHero();
+        audioEngine.initVoices();
+      initAppleHero();
       }
 
       if (!shelfSectionsContainer) return;
@@ -2424,6 +2472,7 @@
 
     // ABRIR LIVRO NO LEITOR FLUIDO PRO
     function openBook(bookId, pushHistory = true) {
+      if (typeof audioEngine !== "undefined") audioEngine.stop();
       const book = state.books.find(b => b.id === bookId);
       if (!book) return;
 
@@ -2571,6 +2620,177 @@
         toggleNotes(false);
       };
     }
+
+
+    // ==========================================================================
+    // MOTOR DE NARRAÇÃO DE ALTA FIDELIDADE (FRASE POR FRASE / VOZ SOLENE BÍBLICA)
+    // ==========================================================================
+    const audioEngine = {
+      isSpeaking: false,
+      currentParaIdx: 0,
+      currentSentenceIdx: 0,
+      sentences: [],
+      paragraphs: [],
+      selectedVoice: null,
+      utterance: null,
+
+      initVoices() {
+        if (!('speechSynthesis' in window)) return;
+        const updateVoice = () => {
+          const voices = window.speechSynthesis.getVoices();
+          // Prioriza vozes do Google português do Brasil, Natural ou qualquer pt-BR
+          this.selectedVoice = voices.find(v => v.lang === 'pt-BR' && /google|natural|brasil/i.test(v.name)) ||
+                               voices.find(v => v.lang === 'pt-BR') ||
+                               voices.find(v => v.lang.startsWith('pt')) || null;
+        };
+        updateVoice();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+          window.speechSynthesis.onvoiceschanged = updateVoice;
+        }
+      },
+
+      cleanText(txt) {
+        if (!txt) return '';
+        return txt
+          .replace(/<[^>]+>/g, '')
+          .replace(/P[áa]g\.\s*\d+/gi, '')
+          .replace(/[*_#~`]/g, '')
+          .replace(/&quot;/g, '"').replace(/&amp;/g, 'e').replace(/&lt;/g, '').replace(/&gt;/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      },
+
+      splitIntoSentences(text) {
+        const cleaned = this.cleanText(text);
+        if (!cleaned) return [];
+        const matches = cleaned.match(/[^.!?;\n]+[.!?;\n]*/g);
+        if (!matches || matches.length === 0) return [cleaned];
+        return matches.map(s => s.trim()).filter(s => s.length > 0);
+      },
+
+      startFromVisible() {
+        if (!('speechSynthesis' in window)) {
+          alert('Seu navegador não possui suporte à síntese de voz.');
+          return;
+        }
+
+        this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
+        if (this.paragraphs.length === 0) return;
+
+        const offset = 90;
+        let startIdx = this.paragraphs.findIndex(p => {
+          const r = p.getBoundingClientRect();
+          return r.bottom > offset && r.top < window.innerHeight;
+        });
+
+        if (startIdx === -1) startIdx = 0;
+        this.currentParaIdx = startIdx;
+        this.isSpeaking = true;
+        this.updateBtnUI();
+        this.speakCurrentParagraph();
+      },
+
+      speakCurrentParagraph() {
+        if (!this.isSpeaking || this.currentParaIdx >= this.paragraphs.length) {
+          this.stop();
+          return;
+        }
+
+        const p = this.paragraphs[this.currentParaIdx];
+        if (!p) {
+          this.stop();
+          return;
+        }
+
+        document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-reading-now'));
+        p.classList.add('tts-reading-now');
+
+        const rect = p.getBoundingClientRect();
+        if (rect.top < 70 || rect.bottom > window.innerHeight - 80) {
+          p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        this.sentences = this.splitIntoSentences(p.textContent);
+        if (this.sentences.length === 0) {
+          this.currentParaIdx++;
+          this.speakCurrentParagraph();
+          return;
+        }
+
+        this.currentSentenceIdx = 0;
+        this.speakSentence();
+      },
+
+      speakSentence() {
+        if (!this.isSpeaking) return;
+
+        if (this.currentSentenceIdx >= this.sentences.length) {
+          this.currentParaIdx++;
+          setTimeout(() => {
+            if (this.isSpeaking) this.speakCurrentParagraph();
+          }, 250);
+          return;
+        }
+
+        const sentenceText = this.sentences[this.currentSentenceIdx];
+        window.speechSynthesis.cancel();
+
+        const u = new SpeechSynthesisUtterance(sentenceText);
+        if (this.selectedVoice) u.voice = this.selectedVoice;
+        u.lang = 'pt-BR';
+        u.rate = 0.95;  // Ritmo pausado e firme
+        u.pitch = 0.88; // Tom mais grave e solene (estilo locutor bíblico)
+
+        u.onend = () => {
+          if (this.isSpeaking) {
+            this.currentSentenceIdx++;
+            this.speakSentence();
+          }
+        };
+
+        u.onerror = (e) => {
+          console.warn('SpeechSynthesis sentence next:', e);
+          if (this.isSpeaking) {
+            this.currentSentenceIdx++;
+            setTimeout(() => this.speakSentence(), 200);
+          }
+        };
+
+        this.utterance = u;
+        window.speechSynthesis.speak(u);
+      },
+
+      stop() {
+        this.isSpeaking = false;
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+        document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-reading-now'));
+        this.updateBtnUI();
+      },
+
+      toggle() {
+        if (this.isSpeaking) {
+          this.stop();
+        } else {
+          this.startFromVisible();
+        }
+      },
+
+      updateBtnUI() {
+        const btn = document.getElementById('btn-reader-audio');
+        if (!btn) return;
+        if (this.isSpeaking) {
+          btn.innerHTML = '⏸ Pausar';
+          btn.classList.add('speaking');
+          btn.title = 'Pausar narração em áudio';
+        } else {
+          btn.innerHTML = '🔊 Ouvir';
+          btn.classList.remove('speaking');
+          btn.title = 'Ouvir narração com voz solene bíblica';
+        }
+      }
+    };
 
     // ==========================================================================
     // SISTEMA DE MARCAÇÕES & CADERNO DE ANOTAÇÕES (EM MEMÓRIA DA SESSÃO)
@@ -2869,6 +3089,7 @@
 
     // VOLTAR PARA A ESTANTE
     function goToShelf(pushHistory = true) {
+      if (typeof audioEngine !== "undefined") audioEngine.stop();
       if (selectionPopover) selectionPopover.style.display = 'none';
       toggleNotes(false);
       toggleToc(false);
