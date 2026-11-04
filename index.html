@@ -3,25 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-      <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <script>
-    // Evita BFCache (Memória Congelada do Android Chrome)
-    window.addEventListener('pageshow', function(e) {
-      if (e.persisted) {
-        window.location.reload();
-      }
-    });
-    // Desregistra qualquer Service Worker residual no Android
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var i = 0; i < regs.length; i++) {
-          regs[i].unregister();
-        }
-      });
-    }
-  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#141416">
@@ -1740,6 +1724,10 @@
         top: 12px;
       }
     }
+  
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -1946,13 +1934,13 @@
   </div>
 
   <!-- Banco de Dados Local dos Livros Processados (Dentro de _sistema) -->
-  <script src="_sistema/biblioteca_data/livros_data.js?v=20261104_android_v3"></script>
+  <script src="_sistema/biblioteca_data/catalogo_meta.js?v=20261104_fast"></script>
 
   <!-- Script Lógico Central da Biblioteca & Leitor -->
   <script>
-    // ESTADO GLOBAL
+    // ESTADO GLOBAL (Carregamento Ultrarrápido: 200KB)
     const state = {
-      books: (window.BIBLIOTECA_LIVROS && window.BIBLIOTECA_LIVROS.length > 0) ? window.BIBLIOTECA_LIVROS : [],
+      books: window.BIBLIOTECA_CATALOGO || window.BIBLIOTECA_LIVROS || [],
       currentBook: null,
       fontSize: parseInt(localStorage.getItem('lib_font_size') || '23'),
       theme: localStorage.getItem('lib_theme') || 'cinza-conforto'
@@ -2205,16 +2193,9 @@
     // ==========================================================================
     function renderShelf() {
       if (!state.books || state.books.length === 0) {
-        if (window.BIBLIOTECA_LIVROS && window.BIBLIOTECA_LIVROS.length > 0) {
-          state.books = window.BIBLIOTECA_LIVROS;
-        } else {
-          if (shelfSectionsContainer) {
-            shelfSectionsContainer.innerHTML = '<div style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px; font-size: 16px;">Carregando os 14 livros...</div>';
-          }
-          setTimeout(renderShelf, 250);
-          return;
-        }
+        state.books = window.BIBLIOTECA_CATALOGO || window.BIBLIOTECA_LIVROS || [];
       }
+      if (!state.books || state.books.length === 0) return;
 
       // Ordenar por ordem pedagógica (1 ao 12)
       state.books.sort((a, b) => (a.order || 99) - (b.order || 99));
@@ -2385,6 +2366,46 @@
 
         shelfSectionsContainer.appendChild(secElem);
       });
+    }    // CARREGADOR SOB DEMANDA DE CONTEÚDO (APENAS O LIVRO ABERTO: ~150KB A 350KB)
+    function loadBookContent(book, callback) {
+      if (book.content && book.content.length > 0) {
+        callback();
+        return;
+      }
+      const globalVar = '__BOOK_' + book.id;
+      if (window[globalVar] && window[globalVar].length > 0) {
+        book.content = window[globalVar];
+        callback();
+        return;
+      }
+
+      // Mostra leitor com animação de carregamento elegante
+      readerContent.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 120px 20px; text-align:center;">
+          <div style="width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
+          <div style="font-size: 18px; font-weight: 700; color: #FFFFFF;">Abrindo "${escapeHtml(book.title)}"...</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Carregando páginas em alta velocidade</div>
+        </div>
+      `;
+      viewShelf.style.display = 'none';
+      viewReader.style.display = 'block';
+      const appHeader = document.querySelector('header.app-header');
+      if (appHeader) appHeader.style.display = 'none';
+
+      const script = document.createElement('script');
+      script.src = `_sistema/biblioteca_data/livros/${book.id}.js?v=20261104`;
+      script.onload = () => {
+        if (window[globalVar]) {
+          book.content = window[globalVar];
+          callback();
+        } else {
+          readerContent.innerHTML = '<div style="color: #FF5555; padding: 40px; text-align: center;">Erro ao carregar o conteúdo do livro. Tente novamente.</div>';
+        }
+      };
+      script.onerror = () => {
+        readerContent.innerHTML = '<div style="color: #FF5555; padding: 40px; text-align: center;">Não foi possível carregar o livro. Verifique sua conexão.</div>';
+      };
+      document.body.appendChild(script);
     }
 
     // ABRIR LIVRO NO LEITOR FLUIDO PRO
@@ -2392,89 +2413,90 @@
       const book = state.books.find(b => b.id === bookId);
       if (!book) return;
 
-      state.currentBook = book;
-      document.title = `${book.title} — Biblioteca 7D`;
+      loadBookContent(book, () => {
+        state.currentBook = book;
+        document.title = `${book.title} — Biblioteca 7D`;
 
-      if (pushHistory) {
-        history.pushState({ bookId: book.id }, book.title, '#/livro/' + book.id);
-      }
-
-      const frag = document.createDocumentFragment();
-      
-      const mainH1 = document.createElement('h1');
-      mainH1.className = 'book-heading lvl-1';
-      mainH1.textContent = book.title;
-      frag.appendChild(mainH1);
-
-      book.content.forEach(b => {
-        if (b.type === 'heading') {
-          const h = document.createElement(`h${Math.min(b.lvl + 1, 4)}`);
-          h.id = b.id;
-          h.className = `book-heading lvl-${b.lvl}`;
-          h.textContent = b.title;
-          frag.appendChild(h);
-        } else if (b.type === 'image') {
-          const fig = document.createElement('figure');
-          fig.className = 'book-figure';
-          fig.onclick = () => openImageZoom(b.src);
-          fig.innerHTML = `
-            <img src="${b.src}" alt="Diagrama" loading="lazy">
-            <figcaption>🔍 Clique para ampliar • Pág. ${b.page}</figcaption>
-          `;
-          frag.appendChild(fig);
-        } else if (b.type === 'paragraph') {
-          const p = document.createElement('p');
-          p.className = 'book-p';
-          p.setAttribute('data-page', b.page);
-          p.innerHTML = b.text;
-          frag.appendChild(p);
+        if (pushHistory) {
+          history.pushState({ bookId: book.id }, book.title, '#/livro/' + book.id);
         }
-      });
 
-      readerContent.innerHTML = '';
-      readerContent.appendChild(frag);
+        const frag = document.createDocumentFragment();
+        
+        const mainH1 = document.createElement('h1');
+        mainH1.className = 'book-heading lvl-1';
+        mainH1.textContent = book.title;
+        frag.appendChild(mainH1);
 
-      renderTocDrawer(book.toc);
-      loadAndApplyHighlights(book.id);
-
-      if (readerBookTitleBadge) readerBookTitleBadge.textContent = book.title;
-      viewShelf.style.display = 'none';
-      viewReader.style.display = 'block';
-      const appHeader = document.querySelector('header.app-header');
-      if (appHeader) appHeader.style.display = 'none';
-      statusPill.style.display = 'flex';
-
-      localStorage.setItem('mode_shelf', '0');
-      localStorage.setItem('last_active_book_id', book.id);
-
-      const savedPage = localStorage.getItem(`page_${book.id}`) || '1';
-      const savedScroll = parseInt(localStorage.getItem(`scroll_${book.id}`) || '0');
-      const subbarPage = document.getElementById('subbar-page');
-      if (subbarPage) {
-        subbarPage.textContent = `📖 Pág. ${savedPage}/${book.totalPages || '?'}`;
-      }
-
-      const restoreScroll = () => {
-        const offset = window.innerWidth <= 768 ? -56 : -90;
-        if (savedPage) {
-          const targetP = document.querySelector(`#reader-content p.book-p[data-page="${savedPage}"]`);
-          if (targetP) {
-            targetP.scrollIntoView({ behavior: 'instant', block: 'start' });
-            window.scrollBy(0, offset); // compensa a barra fixa flutuante
-            updateProgress();
-            return;
+        book.content.forEach(b => {
+          if (b.type === 'heading') {
+            const h = document.createElement(`h${Math.min(b.lvl + 1, 4)}`);
+            h.id = b.id;
+            h.className = `book-heading lvl-${b.lvl}`;
+            h.textContent = b.title;
+            frag.appendChild(h);
+          } else if (b.type === 'image') {
+            const fig = document.createElement('figure');
+            fig.className = 'book-figure';
+            fig.onclick = () => openImageZoom(b.src);
+            fig.innerHTML = `
+              <img src="${b.src}" alt="Diagrama" loading="lazy">
+              <figcaption>📖 Clique para ampliar • Pág. ${b.page}</figcaption>
+            `;
+            frag.appendChild(fig);
+          } else if (b.type === 'paragraph') {
+            const p = document.createElement('p');
+            p.className = 'book-p';
+            p.setAttribute('data-page', b.page);
+            p.innerHTML = b.text;
+            frag.appendChild(p);
           }
-        }
-        if (savedScroll > 0) {
-          window.scrollTo({ top: savedScroll, behavior: 'instant' });
-        }
-        updateProgress();
-      };
+        });
 
-      requestAnimationFrame(() => {
-        restoreScroll();
-        setTimeout(restoreScroll, 120);
-        setTimeout(restoreScroll, 350);
+        readerContent.innerHTML = '';
+        readerContent.appendChild(frag);
+
+        renderTocDrawer(book.toc);
+        loadAndApplyHighlights(book.id);
+
+        if (readerBookTitleBadge) readerBookTitleBadge.textContent = book.title;
+        viewShelf.style.display = 'none';
+        viewReader.style.display = 'block';
+        const appHeader = document.querySelector('header.app-header');
+        if (appHeader) appHeader.style.display = 'none';
+        statusPill.style.display = 'flex';
+
+        localStorage.setItem('mode_shelf', '0');
+        localStorage.setItem('last_active_book_id', book.id);
+
+        const savedPage = localStorage.getItem(`page_${book.id}`) || '1';
+        const savedScroll = parseInt(localStorage.getItem(`scroll_${book.id}`) || '0');
+        const subbarPage = document.getElementById('subbar-page');
+        if (subbarPage) {
+          subbarPage.textContent = `📖 Pág. ${savedPage}/${book.totalPages || '?'}`;
+        }
+
+        const restoreScroll = () => {
+          const offset = window.innerWidth <= 768 ? -56 : -90;
+          if (savedPage) {
+            const targetP = document.querySelector(`#reader-content p.book-p[data-page="${savedPage}"]`);
+            if (targetP) {
+              targetP.scrollIntoView({ behavior: 'instant', block: 'start' });
+              window.scrollBy(0, offset); // compensa a barra fixa flutuante
+              updateProgress();
+              return;
+            }
+          }
+          if (savedScroll > 0) {
+            window.scrollTo({ top: savedScroll, behavior: 'instant' });
+          }
+          updateProgress();
+        };
+
+        requestAnimationFrame(() => {
+          restoreScroll();
+          setTimeout(restoreScroll, 350);
+        });
       });
     }
 
