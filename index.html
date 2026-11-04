@@ -1770,6 +1770,16 @@
 </head>
 <body>
 
+    <!-- Input Invisível de Importação de PDF -->
+  <input type="file" id="pdf-file-input" accept=".pdf,application/pdf" style="display: none;" />
+
+  <!-- Overlay Modal de Processamento do PDF -->
+  <div id="pdf-import-loading" style="display: none; position: fixed; inset: 0; z-index: 3500; background: rgba(5, 5, 8, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: center; justify-content: center; flex-direction: column; color: #FFFFFF; text-align: center; padding: 24px;">
+    <div style="width: 52px; height: 52px; border: 4px solid rgba(255, 255, 255, 0.12); border-top-color: #4ADE80; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 22px;"></div>
+    <div style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;" id="pdf-import-title">Importando seu Livro (PDF)...</div>
+    <div style="font-size: 14.5px; color: rgba(255, 255, 255, 0.7); max-width: 440px; line-height: 1.5;" id="pdf-import-status">Extraindo páginas e estruturando capítulos para leitura com áudio...</div>
+  </div>
+
   <!-- Barra de Progresso Superior -->
   <div id="progress-container"><div id="progress-bar"></div></div>
   <div id="overlay"></div>
@@ -1785,6 +1795,7 @@
     </div>
 
     <div class="header-right">
+      <button class="btn btn-import-header" id="btn-import-pdf-header" style="background: rgba(74, 222, 128, 0.12); border: 1px solid rgba(74, 222, 128, 0.35); color: #4ADE80; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s ease;">📂 Importar PDF</button>
       <!-- Seletor de Cores Noturnas para a Mente -->
       <div class="theme-picker" title="Tons Noturnos Especializados para Descanso Visual e Sono">
         <div class="theme-opt cinza-conforto" data-theme="cinza-conforto" title="🩶 Cinza Conforto (Cinza-Claro sobre Cinza-Escuro & Sans-Serif Moderna)"></div>
@@ -1865,6 +1876,7 @@
         <div class="filter-pill" data-filter="pnl">🧠 PNL &amp; Persuasão</div>
         <div class="filter-pill" data-filter="mind">🎯 Foco &amp; Emoções</div>
         <div class="filter-pill" data-filter="mastery">👑 Mestres da Estratégia</div>
+        <div class="filter-pill filter-pill-import" id="btn-import-pdf-pill" style="border-color: rgba(74, 222, 128, 0.45); color: #4ADE80; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">📂 Importar PDF</div>
       </div>
     </div>
 
@@ -2638,10 +2650,24 @@
         if (!('speechSynthesis' in window)) return;
         const updateVoice = () => {
           const voices = window.speechSynthesis.getVoices();
-          // Prioriza vozes do Google português do Brasil, Natural ou qualquer pt-BR
-          this.selectedVoice = voices.find(v => v.lang === 'pt-BR' && /google|natural|brasil/i.test(v.name)) ||
-                               voices.find(v => v.lang === 'pt-BR') ||
-                               voices.find(v => v.lang.startsWith('pt')) || null;
+          const ptVoices = voices.filter(v => v.lang === 'pt-BR' || v.lang.startsWith('pt'));
+          if (ptVoices.length === 0) return;
+
+          // Seleção inteligente de voz MASCULINA (Daniel, Antonio, Felipe, Jorge, Google jab/yeb, etc.)
+          const maleKeywords = ['daniel', 'antonio', 'felipe', 'jorge', 'ricardo', 'nicolau', 'male', 'homem', 'jab', 'yeb', 'ptd', 'br-pt-x'];
+          const explicitMale = ptVoices.find(v => {
+            const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+            return maleKeywords.some(kw => lower.includes(kw));
+          });
+
+          // Se não tiver palavra-chave masculina explícita, evita vozes com nomes femininos
+          const femaleKeywords = ['maria', 'luciana', 'francisca', 'leticia', 'fernanda', 'female', 'mulher', 'afs', 'heloisa'];
+          const nonFemale = ptVoices.find(v => {
+            const lower = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+            return !femaleKeywords.some(kw => lower.includes(kw));
+          });
+
+          this.selectedVoice = explicitMale || nonFemale || ptVoices[0];
         };
         updateVoice();
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -2655,17 +2681,32 @@
           .replace(/<[^>]+>/g, '')
           .replace(/P[áa]g\.\s*\d+/gi, '')
           .replace(/[*_#~`]/g, '')
-          .replace(/&quot;/g, '"').replace(/&amp;/g, 'e').replace(/&lt;/g, '').replace(/&gt;/g, '')
+          .replace(/&quot;/g, '"').replace(/&amp;/g, ' e ').replace(/&lt;/g, '').replace(/&gt;/g, '')
           .replace(/\s+/g, ' ')
           .trim();
       },
 
+      // Divide parágrafos longos em blocos de pensamento completos para evitar timeout no Android
       splitIntoSentences(text) {
         const cleaned = this.cleanText(text);
         if (!cleaned) return [];
-        const matches = cleaned.match(/[^.!?;\n]+[.!?;\n]*/g);
-        if (!matches || matches.length === 0) return [cleaned];
-        return matches.map(s => s.trim()).filter(s => s.length > 0);
+        // Se o parágrafo for de tamanho normal (até 280 caracteres), lê por inteiro sem fatiar
+        if (cleaned.length <= 280) return [cleaned];
+
+        // Divide por ponto final, exclamação ou interrogação seguido de espaço
+        const parts = cleaned.split(/(?<=[.!?])\s+/);
+        const result = [];
+        let current = '';
+        for (const part of parts) {
+          if ((current + ' ' + part).length > 250 && current.length > 0) {
+            result.push(current.trim());
+            current = part;
+          } else {
+            current = current ? (current + ' ' + part) : part;
+          }
+        }
+        if (current.trim()) result.push(current.trim());
+        return result.length > 0 ? result : [cleaned];
       },
 
       startFromVisible() {
@@ -2676,6 +2717,9 @@
 
         this.paragraphs = Array.from(document.querySelectorAll('#reader-content p.book-p'));
         if (this.paragraphs.length === 0) return;
+
+        // Limpa qualquer áudio anterior antes de iniciar nova sessão
+        window.speechSynthesis.cancel();
 
         const offset = 90;
         let startIdx = this.paragraphs.findIndex(p => {
@@ -2725,21 +2769,26 @@
         if (!this.isSpeaking) return;
 
         if (this.currentSentenceIdx >= this.sentences.length) {
+          // Concluiu todas as partes do parágrafo, avança naturalmente para o próximo
           this.currentParaIdx++;
           setTimeout(() => {
             if (this.isSpeaking) this.speakCurrentParagraph();
-          }, 250);
+          }, 280);
           return;
         }
 
         const sentenceText = this.sentences[this.currentSentenceIdx];
-        window.speechSynthesis.cancel();
+        if (!sentenceText || sentenceText.trim().length === 0) {
+          this.currentSentenceIdx++;
+          this.speakSentence();
+          return;
+        }
 
         const u = new SpeechSynthesisUtterance(sentenceText);
         if (this.selectedVoice) u.voice = this.selectedVoice;
         u.lang = 'pt-BR';
-        u.rate = 0.95;  // Ritmo pausado e firme
-        u.pitch = 0.88; // Tom mais grave e solene (estilo locutor bíblico)
+        u.rate = 0.94;  // Ritmo calmo, pausado e muito claro
+        u.pitch = 0.75; // Tom grave profundo (voz masculina solene estilo locutor bíblico)
 
         u.onend = () => {
           if (this.isSpeaking) {
@@ -2749,7 +2798,7 @@
         };
 
         u.onerror = (e) => {
-          console.warn('SpeechSynthesis sentence next:', e);
+          console.warn('Voz nativa avançando bloco:', e);
           if (this.isSpeaking) {
             this.currentSentenceIdx++;
             setTimeout(() => this.speakSentence(), 200);
@@ -2787,7 +2836,7 @@
         } else {
           btn.innerHTML = '🔊 Ouvir';
           btn.classList.remove('speaking');
-          btn.title = 'Ouvir narração com voz solene bíblica';
+          btn.title = 'Ouvir narração com voz masculina solene bíblica';
         }
       }
     };
@@ -3175,6 +3224,164 @@
       return (str || '').replace(/[&<>"']/g, m => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
       }[m]));
+    }
+
+
+    // ==========================================================================
+    // SISTEMA DE IMPORTAÇÃO CLIENT-SIDE DE LIVROS EM PDF (100% LOCAL & PRIVADO)
+    // ==========================================================================
+    const pdfFileInput = document.getElementById('pdf-file-input');
+    const btnImportPill = document.getElementById('btn-import-pdf-pill');
+    const btnImportHeader = document.getElementById('btn-import-pdf-header');
+    const pdfImportLoading = document.getElementById('pdf-import-loading');
+    const pdfImportTitle = document.getElementById('pdf-import-title');
+    const pdfImportStatus = document.getElementById('pdf-import-status');
+
+    function triggerPdfUpload() {
+      if (pdfFileInput) {
+        pdfFileInput.value = '';
+        pdfFileInput.click();
+      }
+    }
+
+    if (btnImportPill) btnImportPill.addEventListener('click', (e) => { e.preventDefault(); triggerPdfUpload(); });
+    if (btnImportHeader) btnImportHeader.addEventListener('click', (e) => { e.preventDefault(); triggerPdfUpload(); });
+
+    function loadPdfJs(callback) {
+      if (window.pdfjsLib) {
+        callback();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        callback();
+      };
+      script.onerror = () => {
+        alert('Não foi possível carregar o motor de PDF. Verifique sua conexão com a internet.');
+        if (pdfImportLoading) pdfImportLoading.style.display = 'none';
+      };
+      document.head.appendChild(script);
+    }
+
+    if (pdfFileInput) {
+      pdfFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (pdfImportLoading) {
+          pdfImportLoading.style.display = 'flex';
+          if (pdfImportTitle) pdfImportTitle.textContent = `Carregando "${file.name}"...`;
+          if (pdfImportStatus) pdfImportStatus.textContent = 'Inicializando motor de extração neuro-ergonômico...';
+        }
+
+        loadPdfJs(() => {
+          const fileReader = new FileReader();
+          fileReader.onload = async function() {
+            try {
+              const typedarray = new Uint8Array(this.result);
+              const pdf = await window.pdfjsLib.getDocument({ data: typedarray }).promise;
+              const numPages = pdf.numPages;
+              const bookContent = [];
+              const toc = [];
+
+              if (pdfImportStatus) pdfImportStatus.textContent = `Processando ${numPages} páginas...`;
+
+              for (let pNum = 1; pNum <= numPages; pNum++) {
+                if (pdfImportStatus && pNum % 5 === 0) {
+                  pdfImportStatus.textContent = `Lendo página ${pNum} de ${numPages}...`;
+                }
+
+                const page = await pdf.getPage(pNum);
+                const textContent = await page.getTextContent();
+                
+                let pageText = '';
+                let lastY = null;
+                textContent.items.forEach(item => {
+                  if (lastY !== null && Math.abs(item.transform[5] - lastY) > 8) {
+                    pageText += '\n';
+                  }
+                  pageText += item.str + ' ';
+                  lastY = item.transform[5];
+                });
+
+                const rawParas = pageText.split(/\n\s*\n|\n(?=[A-Z0-9])/).map(t => t.trim()).filter(t => t.length > 0);
+                
+                rawParas.forEach(txt => {
+                  if (txt.length < 80 && /^(cap[ií]tulo|parte|se[çc][aã]o|m[óo]dulo|\d+\.|\d+\s+[A-Z])/i.test(txt)) {
+                    const headingId = 'h_custom_' + pNum + '_' + Math.random().toString(36).substr(2, 5);
+                    bookContent.push({
+                      type: 'heading',
+                      id: headingId,
+                      lvl: 1,
+                      title: txt,
+                      page: pNum
+                    });
+                    toc.push({
+                      id: headingId,
+                      lvl: 1,
+                      title: txt,
+                      page: pNum
+                    });
+                  } else {
+                    bookContent.push({
+                      type: 'paragraph',
+                      text: txt,
+                      page: pNum
+                    });
+                  }
+                });
+
+                if (pNum === 1 || pNum % 10 === 0) {
+                  if (!toc.some(t => t.page === pNum)) {
+                    toc.push({
+                      id: 'page_mark_' + pNum,
+                      lvl: 2,
+                      title: `Página ${pNum}`,
+                      page: pNum
+                    });
+                  }
+                }
+              }
+
+              if (bookContent.length === 0) {
+                alert('O PDF selecionado parece ser composto apenas por imagens escaneadas sem camada de texto selecionável.');
+                if (pdfImportLoading) pdfImportLoading.style.display = 'none';
+                return;
+              }
+
+              const customId = 'custom_pdf_' + Date.now();
+              const cleanTitle = file.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ');
+
+              const newBook = {
+                id: customId,
+                title: cleanTitle.toUpperCase(),
+                author: 'PDF Importado',
+                category: 'quick',
+                totalPages: numPages,
+                readingTime: Math.max(5, Math.round(numPages * 1.5)) + 'm',
+                difficulty: 'Pessoal',
+                diffColor: '#4ADE80',
+                pedagogicalWhy: 'Documento PDF importado para leitura com narração em áudio, temas noturnos e sumário.',
+                cover: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420"><rect width="300" height="420" rx="16" fill="%231E293B"/><rect x="20" y="20" width="260" height="380" rx="10" fill="none" stroke="%234ADE80" stroke-width="2" stroke-dasharray="6 6"/><text x="150" y="190" fill="%23FFFFFF" font-family="sans-serif" font-size="48" text-anchor="middle">📄</text><text x="150" y="240" fill="%23FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" text-anchor="middle">PDF IMPORTADO</text><text x="150" y="270" fill="%2394A3B8" font-family="sans-serif" font-size="12" text-anchor="middle">' + numPages + ' PÁGINAS</text></svg>',
+                toc: toc,
+                content: bookContent
+              };
+
+              state.books.unshift(newBook);
+              renderShelf();
+              if (pdfImportLoading) pdfImportLoading.style.display = 'none';
+              openBook(newBook.id);
+            } catch (err) {
+              console.error('Erro na extração do PDF:', err);
+              alert('Não foi possível processar este arquivo PDF. Verifique se o arquivo não está corrompido ou protegido por senha.');
+              if (pdfImportLoading) pdfImportLoading.style.display = 'none';
+            }
+          };
+          fileReader.readAsArrayBuffer(file);
+        });
+      });
     }
 
     // ==========================================================================
