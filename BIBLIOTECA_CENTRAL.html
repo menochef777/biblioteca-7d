@@ -2639,6 +2639,7 @@
     // ==========================================================================
     const audioEngine = {
       isSpeaking: false,
+      isPaused: false,
       currentParaIdx: 0,
       paragraphs: [],
       audioPlayer: null,
@@ -2675,6 +2676,15 @@
 
       initVoices() {
         this.init();
+      },
+
+      unlockMobileAudio() {
+        this.init();
+        if (!this.audioPlayer.src) {
+          // Silêncio minúsculo para liberar o contexto de áudio em celulares Android/iOS
+          this.audioPlayer.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        }
+        this.audioPlayer.play().catch(() => {});
       },
 
       cleanText(txt) {
@@ -2747,10 +2757,11 @@
         if (startIdx === -1) startIdx = 0;
         this.currentParaIdx = startIdx;
         this.isSpeaking = true;
+        this.isPaused = false;
         this.updateBtnUI();
 
-        // Destrava canal de áudio imediatamente no toque do usuário
-        this.audioPlayer.play().then(() => this.audioPlayer.pause()).catch(() => {});
+        // Destrava áudio imediatamente no toque do usuário
+        this.unlockMobileAudio();
 
         this.playCurrentParagraph();
       },
@@ -2769,10 +2780,11 @@
 
         this.customText = text;
         this.isSpeaking = true;
+        this.isPaused = false;
         this.updateBtnUI();
 
         // Destrava áudio no toque
-        this.audioPlayer.play().then(() => this.audioPlayer.pause()).catch(() => {});
+        this.unlockMobileAudio();
 
         this.playText(text);
       },
@@ -2883,8 +2895,35 @@
         window.speechSynthesis.speak(u);
       },
 
+      pause() {
+        this.isSpeaking = false;
+        this.isPaused = true;
+        if (this.audioPlayer) {
+          this.audioPlayer.pause();
+        }
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.pause();
+        }
+        this.updateBtnUI();
+      },
+
+      resume() {
+        this.isSpeaking = true;
+        this.isPaused = false;
+        this.updateBtnUI();
+        if (this.audioPlayer && this.audioPlayer.src && !this.audioPlayer.ended) {
+          this.audioPlayer.play().catch(e => {
+            console.warn('Erro ao retomar áudio:', e);
+            this.playCurrentParagraph();
+          });
+        } else {
+          this.playCurrentParagraph();
+        }
+      },
+
       stop() {
         this.isSpeaking = false;
+        this.isPaused = false;
         this.activeRequestId++;
         if (this.audioPlayer) {
           this.audioPlayer.pause();
@@ -2899,9 +2938,13 @@
 
       toggle() {
         if (this.isSpeaking) {
-          this.stop();
+          this.pause();
         } else {
-          this.startFromVisible();
+          if (this.isPaused && this.audioPlayer && this.audioPlayer.currentTime > 0) {
+            this.resume();
+          } else {
+            this.startFromVisible();
+          }
         }
       },
 
@@ -2912,6 +2955,10 @@
           btn.innerHTML = '⏸ Pausar';
           btn.classList.add('speaking');
           btn.title = 'Pausar narração em áudio';
+        } else if (this.isPaused) {
+          btn.innerHTML = '▶ Continuar';
+          btn.classList.remove('speaking');
+          btn.title = 'Continuar narração';
         } else {
           btn.innerHTML = '🔊 Ouvir';
           btn.classList.remove('speaking');
