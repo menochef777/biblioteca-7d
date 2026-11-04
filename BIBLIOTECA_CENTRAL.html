@@ -1961,6 +1961,10 @@
         <span class="dock-icon">📑</span>
         <span>Sumário</span>
       </button>
+      <button class="dock-btn" id="dock-btn-audio" title="Ouvir Narração em Voz Alta">
+        <span class="dock-icon">🔊</span>
+        <span>Áudio</span>
+      </button>
       <button class="dock-btn" id="dock-btn-focus" title="Foco Mental">
         <span class="dock-icon">🎯</span>
         <span>Foco</span>
@@ -2149,6 +2153,7 @@
     const sheetFullscreen = document.getElementById('sheet-fullscreen');
     const sheetZen = document.getElementById('sheet-zen');
     const dockBtnToc = document.getElementById('dock-btn-toc');
+    const dockBtnAudio = document.getElementById('dock-btn-audio');
     const dockBtnFocus = document.getElementById('dock-btn-focus');
     const dockBtnBionic = document.getElementById('dock-btn-bionic');
     const dockBtnNotes = document.getElementById('dock-btn-notes');
@@ -3013,11 +3018,24 @@
     };
 
     // ==========================================================================
-    // LEITURA EM VOZ ALTA (VOZ NEURAL DO LOCUTOR DE ESTÚDIO)
+    // LEITURA EM VOZ ALTA (PABLO MARÇAL LOCAL OU VOZ NATIVA NA VERCEL/CELULAR)
     // ==========================================================================
     const voiceAudio = new Audio();
     const VOICE_SERVER_URL = window.location.origin.includes('http') ? window.location.origin : 'http://127.0.0.1:5055';
     let isServerOnline = false;
+
+    // Detecta vozes nativas em português disponíveis no celular ou navegador
+    let nativePtVoice = null;
+    function loadNativeVoices() {
+      if ('speechSynthesis' in window) {
+        const voices = window.speechSynthesis.getVoices();
+        nativePtVoice = voices.find(v => v.lang === 'pt-BR') || voices.find(v => v.lang.startsWith('pt')) || null;
+      }
+    }
+    if ('speechSynthesis' in window) {
+      loadNativeVoices();
+      window.speechSynthesis.onvoiceschanged = loadNativeVoices;
+    }
 
     async function checkVoiceServer() {
       try {
@@ -3030,18 +3048,20 @@
             badge.style.background = 'rgba(34,197,94,0.18)';
             badge.style.color = '#4ADE80';
             badge.style.borderColor = 'rgba(34,197,94,0.35)';
-            badge.innerHTML = '● Estúdio HD';
+            badge.innerHTML = '● Estúdio Pablo';
           }
+          if (btnTts && !state.isSpeaking) btnTts.textContent = '🔊 Ouvir Pablo Marçal';
         }
       } catch (e) {
         isServerOnline = false;
         const badge = document.getElementById('voice-badge');
         if (badge) {
-          badge.style.background = 'rgba(234,179,8,0.15)';
-          badge.style.color = '#FACC15';
-          badge.style.borderColor = 'rgba(234,179,8,0.3)';
-          badge.innerHTML = '○ Voz Padrão';
+          badge.style.background = 'rgba(56,189,248,0.15)';
+          badge.style.color = '#38BDF8';
+          badge.style.borderColor = 'rgba(56,189,248,0.3)';
+          badge.innerHTML = '🔊 Voz Nativa';
         }
+        if (btnTts && !state.isSpeaking) btnTts.textContent = '🔊 Ouvir Narração';
       }
     }
     checkVoiceServer();
@@ -3071,9 +3091,7 @@
         if (btnTts) btnTts.textContent = '⏳ Pablo Sintetizando...';
         voiceAudio.src = audioUrl;
         voiceAudio.onplay = () => {
-          if (btnTts && state.isSpeaking) {
-            btnTts.textContent = '⏸ Pausar Pablo';
-          }
+          updateSpeechButtons(true);
         };
         voiceAudio.onended = () => {
           if (state.isSpeaking) {
@@ -3081,12 +3099,9 @@
             speakNext();
           }
         };
-        voiceAudio.onerror = (e) => {
-          console.warn('Aguardando áudio do Pablo...', e);
-          if (btnTts) btnTts.textContent = '⏳ Pablo Gerando...';
-          setTimeout(() => {
-            if (state.isSpeaking) speakNext();
-          }, 2500);
+        voiceAudio.onerror = () => {
+          // Fallback gracioso para a voz nativa do dispositivo
+          playNativeSpeech(text);
         };
 
         // Pré-carregamento suave do próximo parágrafo na GPU
@@ -3101,35 +3116,87 @@
         try {
           await voiceAudio.play();
         } catch (err) {
-          console.log('Aguardando reprodução...');
+          playNativeSpeech(text);
         }
       } else {
-        if (btnTts) btnTts.textContent = '⚠️ Servidor de Voz Offline';
+        // Sem servidor local: usa a voz nativa do celular/navegador (100% compatível com a Vercel)
+        playNativeSpeech(text);
+      }
+    }
+
+    function playNativeSpeech(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Seu navegador não possui suporte a sintetizador de voz nativo.');
+        stopSpeech();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (nativePtVoice) utterance.voice = nativePtVoice;
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.05;
+
+      utterance.onstart = () => {
+        updateSpeechButtons(true);
+      };
+
+      utterance.onend = () => {
+        if (state.isSpeaking) {
+          state.speechIndex++;
+          speakNext();
+        }
+      };
+
+      utterance.onerror = (e) => {
+        console.warn('Voz nativa avançando...', e);
+        if (state.isSpeaking) {
+          state.speechIndex++;
+          setTimeout(speakNext, 400);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function updateSpeechButtons(speaking) {
+      if (btnTts) {
+        btnTts.classList.toggle('active', speaking);
+        btnTts.textContent = speaking ? '⏸ Pausar Áudio' : (isServerOnline ? '🔊 Ouvir Pablo Marçal' : '🔊 Ouvir Narração');
+      }
+      if (dockBtnAudio) {
+        dockBtnAudio.classList.toggle('active', speaking);
+        const icon = dockBtnAudio.querySelector('.dock-icon');
+        if (icon) icon.textContent = speaking ? '⏸' : '🔊';
       }
     }
 
     function stopSpeech() {
       voiceAudio.pause();
       voiceAudio.currentTime = 0;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       state.isSpeaking = false;
-      btnTts.classList.remove('active');
-      btnTts.textContent = '🔊 Ouvir Pablo Marçal';
+      updateSpeechButtons(false);
       document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-active'));
     }
 
-    btnTts.onclick = () => {
+    const toggleSpeechAction = () => {
       if (state.isSpeaking) {
         stopSpeech();
       } else {
         const paras = Array.from(document.querySelectorAll('#reader-content p.book-p'));
-        let foundIdx = paras.findIndex(p => p.getBoundingClientRect().top >= 90);
+        let foundIdx = paras.findIndex(p => p.getBoundingClientRect().top >= 70);
         state.speechIndex = Math.max(0, foundIdx);
         state.isSpeaking = true;
-        btnTts.classList.add('active');
-        btnTts.textContent = '⏸ Pausar';
+        updateSpeechButtons(true);
         speakNext();
       }
     };
+
+    if (btnTts) btnTts.onclick = toggleSpeechAction;
+    if (dockBtnAudio) dockBtnAudio.onclick = toggleSpeechAction;
 
     async function speakTextDirect(text) {
       stopSpeech();
@@ -3144,6 +3211,15 @@
       } else {
         fallbackSpeech(text);
       }
+    }
+
+    function fallbackSpeech(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (nativePtVoice) u.voice = nativePtVoice;
+      u.lang = 'pt-BR';
+      window.speechSynthesis.speak(u);
     }
 
     // ZOOM DE IMAGEM

@@ -9,12 +9,9 @@ INDEX_PATH = os.path.join(BASE_DIR, 'index.html')
 with open(CENTRAL_PATH, 'r', encoding='utf-8') as f:
     html = f.read()
 
-# 1. Remove voice button and status from public web edition
-html = re.sub(r'<!-- Locução Exclusiva Pablo Marçal -->[\s\S]*?🔥 Pablo Marçal</span>', '<!-- Modo Leitura Pura Sem Travamentos -->', html)
-html = html.replace('<span id="voice-badge" class="voice-badge" style="display:none;">○ Conectando...</span>', '')
-
-# 2. Desativa polling de servidor de voz no GitHub Pages
-html = html.replace('checkVoiceServer();', '// Web Edition: 100% nativo sem servidor')
+# Para a versão Web / Vercel:
+# Desativa checagem de servidor local de IA, ativando direto a Narração Neural Nativa Web Speech
+html = html.replace('checkVoiceServer();', '// Web Edition: 100% nativo sem servidor local\n    isServerOnline = false;')
 html = html.replace('setInterval(checkVoiceServer, 10000);', '// Web Edition: Zero requisições de fundo')
 
 with open(INDEX_PATH, 'w', encoding='utf-8') as f_out:
