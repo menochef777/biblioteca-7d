@@ -265,79 +265,105 @@
       min-height: 100vh;
     }
 
-    /* Hero Showcase Apple TV (Topo Cinematográfico) */
+    /* Hero Showcase Apple TV (Topo Cinematográfico com Destaque 3D) */
     .apple-hero {
       position: relative;
       width: 100%;
-      min-height: 560px;
-      height: 70vh;
-      max-height: 700px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 40px 64px 44px;
+      min-height: 420px;
+      padding: 40px 64px 28px;
       overflow: hidden;
       box-sizing: border-box;
       background: #070709;
-    }
-
-    .apple-hero-backdrop-wrap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .apple-hero-backdrop {
-      position: absolute;
-      top: -4%;
-      right: 2%;
-      width: 68%;
-      height: 108%;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: right center;
-      transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      transform: scale(1.02);
-      filter: saturate(1.15) contrast(1.06) brightness(0.92);
-    }
-
-    /* Vinhetas Apple TV: fundem o pôster com o fundo preto à esquerda e embaixo */
-    .apple-hero-vignette-left {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 68%;
-      height: 100%;
-      background: linear-gradient(to right, #070709 0%, #070709 38%, rgba(7,7,9,0.9) 62%, rgba(7,7,9,0.2) 90%, transparent 100%);
-      z-index: 2;
-    }
-
-    .apple-hero-vignette-bottom {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 65%;
-      background: linear-gradient(to top, #070709 0%, rgba(7,7,9,0.85) 40%, transparent 100%);
-      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .apple-hero-ambient-glow {
       position: absolute;
-      top: 15%;
-      right: 20%;
-      width: 520px;
-      height: 520px;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
-      filter: blur(90px);
+      top: 10%;
+      right: 15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%);
+      filter: blur(80px);
       z-index: 1;
       pointer-events: none;
       transition: background 0.6s ease;
+    }
+
+    /* Layout de 2 Colunas do Hero: Texto na Esquerda e Capa 3D na Direita */
+    .apple-hero-main-layout {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 48px;
+    }
+
+    .apple-hero-content {
+      flex: 1;
+      max-width: 600px;
+      margin-bottom: 0;
+      animation: appleHeroFadeIn 0.5s ease-out;
+    }
+
+    .apple-hero-cover-showcase {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+      padding-right: 32px;
+    }
+
+    .apple-hero-book-3d {
+      position: relative;
+      transform: perspective(1000px) rotateY(-15deg) rotateX(4deg);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    .apple-hero-book-3d:hover {
+      transform: perspective(1000px) rotateY(-4deg) rotateX(0deg) scale(1.05);
+    }
+
+    .apple-hero-book-3d img {
+      width: 240px;
+      height: 350px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      box-shadow: -18px 22px 50px rgba(0, 0, 0, 0.9), 0 0 40px var(--accent-glow);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: opacity 0.25s ease;
+      background: #18181C;
+    }
+
+    .book-3d-spine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 12px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 50%, rgba(0,0,0,0.4) 100%);
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      pointer-events: none;
+    }
+
+    .book-3d-shine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(125deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.06) 35%, transparent 60%);
+      pointer-events: none;
     }
 
     /* Pílula Apple TV Home (Canto Superior Esquerdo) */
@@ -1533,26 +1559,34 @@
         font-size: 15px;
       }
 
-      /* Apple TV Hero no Celular */
+      /* Apple TV Hero no Celular com Capa 3D Prominente */
       .apple-hero {
         min-height: auto;
         height: auto;
-        padding: 68px 16px 24px;
+        padding: 56px 16px 20px;
       }
-      .apple-hero-backdrop {
-        width: 100%;
-        height: 100%;
-        right: 0;
-        top: 0;
-        opacity: 0.25;
-        filter: blur(2px) brightness(0.65);
+      .apple-hero-main-layout {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+        margin-top: 14px;
       }
-      .apple-hero-vignette-left {
-        width: 100%;
-        background: linear-gradient(to right, #070709 30%, rgba(7,7,9,0.85) 75%, transparent 100%);
+      .apple-hero-cover-showcase {
+        padding-right: 0;
+        margin-bottom: 4px;
+        order: -1; /* Exibe a foto do livro no topo do destaque no celular */
       }
-      .apple-hero-vignette-bottom {
-        height: 80%;
+      .apple-hero-book-3d {
+        transform: perspective(800px) rotateY(-8deg);
+      }
+      .apple-hero-book-3d img {
+        width: 145px;
+        height: 215px;
+        box-shadow: -10px 14px 30px rgba(0, 0, 0, 0.85), 0 0 25px var(--accent-glow);
+      }
+      .apple-hero-badges {
+        justify-content: center;
       }
       .apple-top-pill {
         top: 14px;
@@ -1562,10 +1596,10 @@
       }
       .apple-hero-content {
         max-width: 100%;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
       }
       .apple-hero-title {
-        font-size: clamp(1.45rem, 6.4vw, 2.1rem);
+        font-size: clamp(1.4rem, 6.2vw, 1.9rem);
         line-height: 1.15;
         margin-bottom: 6px;
       }
@@ -1839,45 +1873,52 @@
   <main id="view-shelf" class="apple-tv-view">
     <!-- Apple TV Featured Cinema Showcase -->
     <section class="apple-hero" id="apple-hero">
-      <div class="apple-hero-backdrop-wrap">
-        <div class="apple-hero-backdrop" id="apple-hero-backdrop"></div>
-        <div class="apple-hero-vignette-left"></div>
-        <div class="apple-hero-vignette-bottom"></div>
-        <div class="apple-hero-ambient-glow" id="apple-hero-glow"></div>
-      </div>
+      <div class="apple-hero-ambient-glow" id="apple-hero-glow"></div>
 
       <!-- Pílula Apple TV Home (Canto Superior Esquerdo) -->
       <div class="apple-top-pill" id="apple-home-pill" title="Biblioteca 7D Pro">
         <span class="apple-pill-chevron">‹</span>
-        <span class="apple-pill-icon">🏠</span>
-        <span class="apple-pill-text">Home</span>
+        <span class="apple-pill-icon">🧠</span>
+        <span class="apple-pill-text">Biblioteca 7D</span>
       </div>
 
-      <!-- Conteúdo Hero (Coluna Esquerda) -->
-      <div class="apple-hero-content">
-        <div class="apple-hero-badges" id="apple-hero-badges">
-          <span class="apple-badge-category" id="apple-hero-category">PSICOLOGIA &amp; CORAGEM</span>
-          <span class="apple-badge-rating" id="apple-hero-time">⏱️ 1h 33m</span>
-          <span class="apple-badge-pill" id="apple-hero-difficulty">FÁCIL &amp; DIRETO</span>
-          <span class="apple-badge-pill" id="apple-hero-pages">119 PÁGS</span>
+      <!-- Layout Central do Hero: Texto & Livro 3D Prominente -->
+      <div class="apple-hero-main-layout">
+        <!-- Conteúdo Hero (Coluna Esquerda) -->
+        <div class="apple-hero-content">
+          <div class="apple-hero-badges" id="apple-hero-badges">
+            <span class="apple-badge-category" id="apple-hero-category">PSICOLOGIA &amp; CORAGEM</span>
+            <span class="apple-badge-rating" id="apple-hero-time">⏱️ 1h 33m</span>
+            <span class="apple-badge-pill" id="apple-hero-difficulty">FÁCIL &amp; DIRETO</span>
+            <span class="apple-badge-pill" id="apple-hero-pages">119 PÁGS</span>
+          </div>
+
+          <h1 class="apple-hero-title" id="apple-hero-title">ANTIMEDO VERSÃO 2.0</h1>
+          
+          <div class="apple-hero-author" id="apple-hero-author">Pablo Marçal • Desbloqueio e Coragem</div>
+          
+          <p class="apple-hero-desc" id="apple-hero-desc">
+            O mais curto da estante. Destrava a coragem, quebra o bloqueio de ler e dá a primeira sensação de conquista rápida antes dos livros densos de poder.
+          </p>
+
+          <div class="apple-hero-actions">
+            <button class="apple-btn-primary" id="apple-hero-btn-play">
+              <span class="play-icon">▶</span>
+              <span id="apple-hero-btn-text">Começar a Ler Agora</span>
+            </button>
+            <button class="apple-btn-secondary" id="apple-hero-btn-toc">
+              <span>📑 Ver Sumário</span>
+            </button>
+          </div>
         </div>
 
-        <h1 class="apple-hero-title" id="apple-hero-title">ANTIMEDO VERSÃO 2.0</h1>
-        
-        <div class="apple-hero-author" id="apple-hero-author">Pablo Marçal • Desbloqueio e Coragem</div>
-        
-        <p class="apple-hero-desc" id="apple-hero-desc">
-          O mais curto da estante. Destrava a coragem, quebra o bloqueio de ler e dá a primeira sensação de conquista rápida antes dos livros densos de poder.
-        </p>
-
-        <div class="apple-hero-actions">
-          <button class="apple-btn-primary" id="apple-hero-btn-play">
-            <span class="play-icon">▶</span>
-            <span id="apple-hero-btn-text">Começar a Ler Agora</span>
-          </button>
-          <button class="apple-btn-secondary" id="apple-hero-btn-toc">
-            <span>📑 Ver Sumário</span>
-          </button>
+        <!-- Coluna Direita: Capa 3D Editorial do Livro -->
+        <div class="apple-hero-cover-showcase">
+          <div class="apple-hero-book-3d" id="apple-hero-book-3d" title="Clique para começar a ler este livro">
+            <img id="apple-hero-cover-img" src="_sistema/biblioteca_data/covers/cover_antimedo_versa_o_2_0.png" alt="Capa do Livro" />
+            <div class="book-3d-spine"></div>
+            <div class="book-3d-shine"></div>
+          </div>
         </div>
       </div>
 
@@ -2310,7 +2351,8 @@
     function updateAppleHero(book) {
       if (!book) return;
 
-      const backdrop = document.getElementById('apple-hero-backdrop');
+      const coverImg = document.getElementById('apple-hero-cover-img');
+      const book3d = document.getElementById('apple-hero-book-3d');
       const glow = document.getElementById('apple-hero-glow');
       const cat = document.getElementById('apple-hero-category');
       const time = document.getElementById('apple-hero-time');
@@ -2323,12 +2365,17 @@
       const btnPlayText = document.getElementById('apple-hero-btn-text');
       const btnToc = document.getElementById('apple-hero-btn-toc');
 
-      if (backdrop && book.cover) {
-        backdrop.style.opacity = '0';
+      if (coverImg && book.cover) {
+        coverImg.style.opacity = '0';
         setTimeout(() => {
-          backdrop.style.backgroundImage = `url('${book.cover}')`;
-          backdrop.style.opacity = '1';
-        }, 150);
+          coverImg.src = book.cover;
+          coverImg.alt = book.title;
+          coverImg.style.opacity = '1';
+        }, 120);
+      }
+
+      if (book3d) {
+        book3d.onclick = () => openBook(book.id);
       }
 
       if (glow) {
