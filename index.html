@@ -37,7 +37,6 @@
       --accent: #F59E0B;
       --accent-glow: rgba(245, 158, 11, 0.2);
       --highlight: rgba(245, 158, 11, 0.22);
-      --bionic-color: #FCD34D;
       --card-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.75);
     }
 
@@ -53,7 +52,6 @@
       --accent: #10B981;
       --accent-glow: rgba(16, 185, 129, 0.18);
       --highlight: rgba(16, 185, 129, 0.2);
-      --bionic-color: #6EE7B7;
     }
 
     /* TEMA 3: Carvão & Pérola (Contraste Focado Profundo) */
@@ -68,7 +66,6 @@
       --accent: #38BDF8;
       --accent-glow: rgba(56, 189, 248, 0.18);
       --highlight: rgba(56, 189, 248, 0.2);
-      --bionic-color: #BAE6FD;
     }
 
     /* TEMA 4: OLED Minimal Preto Puro */
@@ -83,7 +80,6 @@
       --accent: #F97316;
       --accent-glow: rgba(249, 115, 22, 0.16);
       --highlight: rgba(249, 115, 22, 0.22);
-      --bionic-color: #FED7AA;
     }
 
     /* TEMA 5 (NOVO): Cinza Conforto (Cinza-Claro sobre Cinza-Escuro & Tipografia Limpa Sans-Serif) */
@@ -98,7 +94,6 @@
       --accent: #4ADE80;
       --accent-glow: rgba(74, 222, 128, 0.2);
       --highlight: rgba(74, 222, 128, 0.22);
-      --bionic-color: #86EFAC;
       --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       --line-height: 1.95;
     }
@@ -128,7 +123,7 @@
     #progress-bar {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--bionic-color));
+      background: var(--accent);
       box-shadow: 0 0 10px var(--accent);
       transition: width 0.08s ease-out;
     }
@@ -893,44 +888,7 @@
       white-space: nowrap;
     }
 
-    /* Botão Olhinho Zen / Imersão (Canto Superior Esquerdo, Abaixo da Estante) */
-    .zen-eye-toggle {
-      position: fixed;
-      top: 56px;
-      left: 18px;
-      z-index: 1050;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 13px;
-      opacity: 0.45;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      user-select: none;
-    }
-    .zen-eye-toggle:hover {
-      opacity: 1;
-      transform: scale(1.18);
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 14px var(--accent-glow);
-    }
-
-    /* Estado Modo Imersivo: Oculta a Navbar */
-    body.zen-navbar-hidden .reader-subbar {
-      transform: translateY(-110%);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-    }
-    body.zen-navbar-hidden .reader-content-wrap {
+    .reader-content-wrap {
       padding-top: 36px !important;
       transition: padding-top 0.28s ease;
     }
@@ -976,6 +934,57 @@
       margin-top: 1.8em;
     }
 
+    
+    /* Botão Voltar Proeminente (SaaS Standard) */
+    .btn-back-primary {
+      background: var(--accent) !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
+      font-size: 13.5px !important;
+      padding: 8px 16px !important;
+      border-radius: 9px !important;
+      border: none !important;
+      box-shadow: 0 2px 10px var(--accent-glow) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      cursor: pointer !important;
+      transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+      white-space: nowrap !important;
+    }
+    .btn-back-primary:hover {
+      transform: translateY(-1px) scale(1.02) !important;
+      box-shadow: 0 4px 16px var(--accent-glow) !important;
+    }
+
+    .reader-floating-back {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .reader-book-title-badge {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .reader-bottom-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
     p.book-p {
       font-family: var(--font-body);
       font-size: var(--font-size);
@@ -992,35 +1001,9 @@
       position: relative;
     }
 
-    /* ==========================================================================
-       MODO FOCO CEREBRAL (FOCUS MODE) - Elimina distração periférica!
-       ========================================================================== */
-    body.focus-mode-active #reader-content p.book-p {
-      opacity: 0.32;
-      filter: blur(0.3px);
-    }
-    body.focus-mode-active #reader-content p.book-p:hover,
-    body.focus-mode-active #reader-content p.book-p.tts-active,
-    body.focus-mode-active #reader-content p.book-p.active-focus {
-      opacity: 1 !important;
-      filter: blur(0) !important;
-      transform: scale(1.008);
-      background: var(--highlight);
-      border-left: 4px solid var(--accent);
-      padding-left: 16px;
-      border-radius: 6px;
-    }
-
-    /* Bionic Reading - Letras Guias em Ouro */
-    b.bionic-lead {
-      font-weight: 700;
-      color: var(--bionic-color);
-      text-shadow: 0 0 1px rgba(245, 158, 11, 0.4);
-    }
-
     /* Grifados & Destaques Originais do Autor */
     p.book-p strong,
-    p.book-p b:not(.bionic-lead) {
+    p.book-p b {
       font-weight: 700;
       color: #FFFFFF;
       background: rgba(74, 222, 128, 0.16);
@@ -1033,40 +1016,33 @@
       transition: background 0.2s ease;
     }
     [data-theme="amber-night"] p.book-p strong,
-    [data-theme="amber-night"] p.book-p b:not(.bionic-lead) {
+    [data-theme="amber-night"] p.book-p b {
       background: rgba(245, 158, 11, 0.18);
       border-bottom-color: #F59E0B;
     }
     [data-theme="emerald-deep"] p.book-p strong,
-    [data-theme="emerald-deep"] p.book-p b:not(.bionic-lead) {
+    [data-theme="emerald-deep"] p.book-p b {
       background: rgba(16, 185, 129, 0.18);
       border-bottom-color: #10B981;
     }
     [data-theme="sapphire-calm"] p.book-p strong,
-    [data-theme="sapphire-calm"] p.book-p b:not(.bionic-lead) {
+    [data-theme="sapphire-calm"] p.book-p b {
       background: rgba(56, 189, 248, 0.18);
       border-bottom-color: #38BDF8;
     }
     [data-theme="terracotta-warm"] p.book-p strong,
-    [data-theme="terracotta-warm"] p.book-p b:not(.bionic-lead) {
+    [data-theme="terracotta-warm"] p.book-p b {
       background: rgba(249, 115, 22, 0.18);
       border-bottom-color: #F97316;
     }
     [data-theme="cinza-conforto"] p.book-p strong,
-    [data-theme="cinza-conforto"] p.book-p b:not(.bionic-lead) {
+    [data-theme="cinza-conforto"] p.book-p b {
       background: rgba(74, 222, 128, 0.18);
       border-bottom-color: #4ADE80;
       color: #FFFFFF;
     }
 
-    /* Parágrafo do Locutor Ativo */
-    p.book-p.tts-active {
-      background: var(--highlight);
-      border-left: 4px solid var(--accent);
-      padding-left: 16px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-    }
+
 
     /* Imagens e Figuras Preservadas */
     .book-figure {
@@ -1124,23 +1100,31 @@
       padding: 10px;
     }
 
-    /* Drawer Sumário */
+    /* Drawer Sumário (Zero Vazamento de Sombra quando fechado) */
     #toc-drawer {
       position: fixed;
       top: 0;
       left: 0;
       width: 380px;
+      max-width: 88vw;
       height: 100vh;
       background: var(--bg-surface);
       border-right: 1px solid var(--border);
       z-index: 1500;
       transform: translateX(-100%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      visibility: hidden;
+      pointer-events: none;
+      box-shadow: none;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease;
       display: flex;
       flex-direction: column;
-      box-shadow: 20px 0 60px rgba(0, 0, 0, 0.7);
     }
-    #toc-drawer.open { transform: translateX(0); }
+    #toc-drawer.open {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+      box-shadow: 20px 0 50px rgba(0, 0, 0, 0.85);
+    }
 
     .drawer-header {
       padding: 20px;
@@ -1325,12 +1309,19 @@
       border-left: 1px solid var(--border);
       z-index: 1500;
       transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      visibility: hidden;
+      pointer-events: none;
+      box-shadow: none;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease;
       display: flex;
       flex-direction: column;
-      box-shadow: -20px 0 60px rgba(0, 0, 0, 0.7);
     }
-    #notes-drawer.open { transform: translateX(0); }
+    #notes-drawer.open {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+      box-shadow: -20px 0 50px rgba(0, 0, 0, 0.85);
+    }
 
     .notes-header {
       padding: 20px;
@@ -1426,105 +1417,6 @@
     /* ==========================================================================
        OTIMIZAÇÃO RESPONSIVA E ERGONOMIA MOBILE (SMARTPHONES & TABLETS)
        ========================================================================== */
-    .reader-mobile-dock {
-      display: none;
-    }
-    #btn-mobile-aa {
-      display: none;
-    }
-
-    /* Modal / Bottom Sheet de Ajustes Visuais no Mobile */
-    #mobile-settings-sheet {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border-hover);
-      border-radius: 20px 20px 0 0;
-      padding: 18px 20px max(24px, env(safe-area-inset-bottom));
-      z-index: 1600;
-      transform: translateY(110%);
-      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
-    }
-    #mobile-settings-sheet.open {
-      transform: translateY(0);
-    }
-    .sheet-handle {
-      width: 40px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.25);
-      border-radius: 2px;
-      margin: 0 auto 16px;
-    }
-    .sheet-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-    .sheet-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .sheet-group {
-      margin-bottom: 18px;
-    }
-    .sheet-label {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 10px;
-    }
-    .sheet-font-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 6px 14px;
-    }
-    .sheet-themes-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-    }
-    .sheet-theme-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      padding: 8px 4px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      transition: all 0.2s;
-    }
-    .sheet-theme-item:active {
-      transform: scale(0.95);
-    }
-    .sheet-theme-item.active {
-      border-color: var(--accent);
-      background: var(--bg-elevated);
-    }
-    .sheet-theme-circle {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.15);
-    }
-    .sheet-theme-name {
-      font-size: 10px;
-      color: var(--text-muted);
-      text-align: center;
-      white-space: nowrap;
-    }
-
     /* Botão fechar explícito para imagem em tela cheia */
     .modal-close-btn {
       position: absolute;
@@ -1672,41 +1564,104 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 6px;
       }
-      .reader-bar-left #btn-focus,
-      .reader-bar-left #btn-bionic,
-      .reader-bar-left #btn-tts,
-      .reader-bar-left span[style*="Pablo Marçal"],
-      .reader-bar-right .theme-picker,
+      .reader-bar-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .reader-subbar .btn-back-primary {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+      }
+      .reader-subbar #btn-toc {
+        padding: 6px 9px;
+        font-size: 12px;
+      }
+      .reader-page-badge {
+        padding: 4px 7px;
+        font-size: 11px;
+      }
+      .reader-bar-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
       .reader-bar-right #btn-notes,
-      .reader-bar-right #btn-font-dec,
-      .reader-bar-right #btn-font-inc,
       .reader-bar-right #btn-fullscreen {
         display: none !important;
       }
-      .reader-bar-left {
-        gap: 8px;
-      }
-      .reader-page-badge {
+      .reader-bar-right #btn-font-dec,
+      .reader-bar-right #btn-font-inc {
         padding: 5px 9px;
         font-size: 12px;
       }
-      .reader-bar-right {
-        gap: 6px;
+      .reader-bar-right .theme-picker {
+        gap: 4px;
       }
-      #btn-mobile-aa {
-        display: inline-flex !important;
-        padding: 6px 12px;
-        font-weight: 700;
-        font-size: 13px;
+      .theme-opt {
+        width: 18px;
+        height: 18px;
       }
 
       /* Conteúdo da Leitura no Celular */
       .reader-content-wrap {
-        padding: 56px 16px calc(80px + env(safe-area-inset-bottom)) !important;
+        padding: 65px 16px 80px !important;
         max-width: 100%;
       }
-      p.book-p {
+      
+    /* Botão Voltar Proeminente (SaaS Standard) */
+    .btn-back-primary {
+      background: var(--accent) !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
+      font-size: 13.5px !important;
+      padding: 8px 16px !important;
+      border-radius: 9px !important;
+      border: none !important;
+      box-shadow: 0 2px 10px var(--accent-glow) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      cursor: pointer !important;
+      transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+      white-space: nowrap !important;
+    }
+    .btn-back-primary:hover {
+      transform: translateY(-1px) scale(1.02) !important;
+      box-shadow: 0 4px 16px var(--accent-glow) !important;
+    }
+
+    .reader-floating-back {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .reader-book-title-badge {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .reader-bottom-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    p.book-p {
         font-size: clamp(17px, 4.8vw, 21px);
         line-height: 1.8;
         margin-bottom: 1.4em;
@@ -1727,81 +1682,6 @@
       .book-figure {
         margin: 2em auto;
         padding: 10px;
-      }
-
-      /* Dock Inferior do Leitor no Celular */
-      .reader-mobile-dock {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background: rgba(20, 20, 22, 0.96);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-top: 1px solid var(--border);
-        padding: 8px 10px max(10px, env(safe-area-inset-bottom));
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-      }
-      [data-theme="cinza-conforto"] .reader-mobile-dock { background: rgba(20, 20, 22, 0.96); }
-      [data-theme="amber-night"] .reader-mobile-dock { background: rgba(19, 16, 13, 0.96); }
-      [data-theme="salvia"] .reader-mobile-dock { background: rgba(13, 19, 17, 0.96); }
-      [data-theme="charcoal"] .reader-mobile-dock { background: rgba(14, 17, 22, 0.96); }
-      [data-theme="oled"] .reader-mobile-dock { background: rgba(0, 0, 0, 0.98); }
-
-      .dock-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        font-size: 10px;
-        font-weight: 600;
-        font-family: var(--font-ui);
-        cursor: pointer;
-        padding: 6px 8px;
-        border-radius: 8px;
-        transition: all 0.15s ease;
-        position: relative;
-        min-width: 52px;
-      }
-      .dock-btn .dock-icon {
-        font-size: 18px;
-        line-height: 1;
-      }
-      .dock-btn:active {
-        transform: scale(0.92);
-      }
-      .dock-btn.active {
-        color: var(--accent);
-        font-weight: 700;
-      }
-      .dock-btn.active .dock-icon {
-        filter: drop-shadow(0 0 6px var(--accent-glow));
-      }
-      .dock-badge {
-        position: absolute;
-        top: 2px;
-        right: 8px;
-        background: var(--accent);
-        color: #000;
-        font-size: 9.5px;
-        font-weight: 800;
-        border-radius: 99px;
-        padding: 1px 5px;
-        line-height: 1.2;
-      }
-
-      body.zen-navbar-hidden .reader-mobile-dock {
-        transform: translateY(115%);
-        opacity: 0;
-        pointer-events: none;
       }
 
       #toc-drawer, #notes-drawer {
@@ -1950,134 +1830,54 @@
     <!-- Barra Superior Fixa que Acompanha Toda a Leitura -->
     <nav class="reader-subbar" id="reader-subbar">
       <div class="reader-bar-left">
-        <button class="btn" id="btn-back-reader" title="Voltar para a Estante de Livros">← Estante</button>
+        <button class="btn btn-back-primary" id="btn-back-reader" title="Voltar para a Estante de Livros">← Voltar à Estante</button>
         <button class="btn" id="btn-toc" title="Abrir Sumário do Livro">📑 Sumário</button>
         
-        <!-- Indicador de Página no Formato Pág. 30/119 (ex: 30/335) -->
+        <!-- Indicador de Página no Formato Pág. 30/119 -->
         <div class="reader-page-badge" id="reader-page-badge" title="Página atual / Total de páginas">
           <span id="subbar-page">Pág. 1/?</span>
         </div>
-
-        <!-- Foco Mental (O Divisor de Águas) -->
-        <button class="btn" id="btn-focus" title="Isola o parágrafo atual e atenua o resto para absorção profunda">🎯 Foco: OFF</button>
-        
-        <!-- Bionic Reading em Dourado -->
-        <button class="btn" id="btn-bionic" title="Ativa o Bionic Reading em tom âmbar">⚡ Bionic: OFF</button>
-        
-        <!-- Locução Exclusiva Pablo Marçal -->
-        <button class="btn primary" id="btn-tts" title="Ouvir livro com a voz clonada do Pablo Marçal">🔊 Ouvir Pablo Marçal</button>
-        <span style="display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#F59E0B; font-size:12px; background:rgba(245,158,11,0.12); padding:6px 12px; border-radius:99px; border:1px solid rgba(245,158,11,0.3);">🔥 Pablo Marçal</span>
       </div>
 
       <div class="reader-bar-right">
         <!-- Seletor de Cores Noturnas Acompanha a Leitura -->
         <div class="theme-picker" title="Tons Noturnos Especializados para Descanso Visual">
-          <div class="theme-opt cinza-conforto" data-theme="cinza-conforto" title="🩶 Cinza Conforto (Cinza-Claro sobre Cinza-Escuro & Sans-Serif Moderna)"></div>
-          <div class="theme-opt amber-night" data-theme="amber-night" title="🕯️ Âmbar Noturno (Melatonina Preservada & Zero Luz Azul)"></div>
-          <div class="theme-opt salvia" data-theme="salvia" title="🌿 Sálvia Deep (Calmante para Mente Hiperativa)"></div>
-          <div class="theme-opt charcoal" data-theme="charcoal" title="🌌 Carvão & Pérola (Contraste Focado)"></div>
+          <div class="theme-opt cinza-conforto" data-theme="cinza-conforto" title="🩶 Cinza Conforto"></div>
+          <div class="theme-opt amber-night" data-theme="amber-night" title="🕯️ Âmbar Noturno"></div>
+          <div class="theme-opt salvia" data-theme="salvia" title="🌿 Sálvia Deep"></div>
+          <div class="theme-opt charcoal" data-theme="charcoal" title="🌌 Carvão & Pérola"></div>
           <div class="theme-opt oled" data-theme="oled" title="🖤 OLED Preto Puro"></div>
         </div>
 
         <!-- Caderno de Anotações & Destaques -->
-        <button class="btn" id="btn-notes" title="Abrir Caderno de Anotações e Frases Marcadas">📝 Anotações (<span id="notes-count">0</span>)</button>
+        <button class="btn" id="btn-notes" title="Abrir Caderno de Anotações e Frases Marcadas">📝 Notas (<span id="notes-count">0</span>)</button>
         <button class="btn" id="btn-font-dec" title="Diminuir fonte">A-</button>
         <button class="btn" id="btn-font-inc" title="Aumentar fonte">A+</button>
         <button class="btn" id="btn-fullscreen" title="Tela cheia">⛶ Tela Cheia</button>
-        
-        <!-- Botão Aa Compacto no Mobile -->
-        <button class="btn" id="btn-mobile-aa" title="Ajustes de Aparência e Tema">Aa</button>
       </div>
     </nav>
 
-    <!-- Botão de Olhinho Zen / Imersão (Canto Superior Esquerdo, Abaixo da Estante) -->
-    <button id="btn-zen-eye" class="zen-eye-toggle" title="Ocultar / Mostrar Barra de Ferramentas (Modo Imersivo)">👁️</button>
-
     <!-- Conteúdo do Livro (Texto Fluido + Imagens Preservadas) -->
-    <div class="reader-content-wrap" id="reader-content"></div>
+    <div class="reader-content-wrap">
+      <!-- Aba Superior com Botão Voltar Bem Visível -->
+      <div class="reader-floating-back">
+        <button class="btn btn-back-primary" id="btn-sticky-back" title="Voltar para a Estante">← Voltar à Estante</button>
+        <span class="reader-book-title-badge" id="reader-book-title-badge"></span>
+      </div>
 
-    <!-- Dock Inferior Mobile (Barra do Polegar para Celulares) -->
-    <nav class="reader-mobile-dock" id="reader-mobile-dock" aria-label="Navegação móvel de leitura">
-      <button class="dock-btn" id="dock-btn-toc" title="Sumário do Livro">
-        <span class="dock-icon">📑</span>
-        <span>Sumário</span>
-      </button>
-      <button class="dock-btn" id="dock-btn-audio" title="Ouvir Narração em Voz Alta">
-        <span class="dock-icon">🔊</span>
-        <span>Áudio</span>
-      </button>
-      <button class="dock-btn" id="dock-btn-focus" title="Foco Mental">
-        <span class="dock-icon">🎯</span>
-        <span>Foco</span>
-      </button>
-      <button class="dock-btn" id="dock-btn-bionic" title="Bionic Reading">
-        <span class="dock-icon">⚡</span>
-        <span>Bionic</span>
-      </button>
-      <button class="dock-btn" id="dock-btn-notes" title="Anotações e Destaques">
-        <span class="dock-icon">📝</span>
-        <span>Notas</span>
-        <span class="dock-badge" id="dock-notes-count" style="display: none;">0</span>
-      </button>
-      <button class="dock-btn" id="dock-btn-settings" title="Aparência e Conforto Visual">
-        <span class="dock-icon">Aa</span>
-        <span>Visual</span>
-      </button>
-    </nav>
+      <div id="reader-content"></div>
+
+      <!-- Aba Inferior com Botão Voltar ao Final da Leitura -->
+      <div class="reader-bottom-nav">
+        <button class="btn btn-back-primary" id="btn-footer-back" title="Voltar para a Estante">← Voltar à Estante de Livros</button>
+        <button class="btn" id="btn-footer-top" title="Subir ao Topo do Livro">↑ Voltar ao Início</button>
+      </div>
+    </div>
   </main>
 
   <!-- Indicador Flutuante de Progresso e Página -->
   <div class="status-pill" id="status-pill" style="display: none;">
     <span id="status-page">Pág. 1</span> • <span id="status-percent">0% lido</span>
-  </div>
-
-  <!-- Sheet de Ajustes Visuais Mobile -->
-  <div id="mobile-settings-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <span class="sheet-title">Aparência & Conforto Visual</span>
-      <button class="btn" id="btn-close-sheet" style="padding: 4px 10px; font-size: 12px;">✕ Fechar</button>
-    </div>
-    
-    <div class="sheet-group">
-      <div class="sheet-label">Tamanho da Fonte</div>
-      <div class="sheet-font-row">
-        <button class="btn" id="sheet-font-dec" style="font-size: 16px; padding: 6px 16px;">A-</button>
-        <span id="sheet-font-size-label" style="font-weight: 700; font-family: var(--font-mono);">23px</span>
-        <button class="btn" id="sheet-font-inc" style="font-size: 16px; padding: 6px 16px;">A+</button>
-      </div>
-    </div>
-
-    <div class="sheet-group">
-      <div class="sheet-label">Tema Visual de Absorção</div>
-      <div class="sheet-themes-grid">
-        <div class="sheet-theme-item active" data-theme="cinza-conforto" title="Cinza Conforto">
-          <div class="sheet-theme-circle" style="background: #141416; border-color: #4ADE80;"></div>
-          <span class="sheet-theme-name">Cinza</span>
-        </div>
-        <div class="sheet-theme-item" data-theme="amber-night" title="Âmbar Noturno">
-          <div class="sheet-theme-circle" style="background: #13100D; border-color: #F59E0B;"></div>
-          <span class="sheet-theme-name">Âmbar</span>
-        </div>
-        <div class="sheet-theme-item" data-theme="salvia" title="Sálvia Deep">
-          <div class="sheet-theme-circle" style="background: #0D1311; border-color: #10B981;"></div>
-          <span class="sheet-theme-name">Sálvia</span>
-        </div>
-        <div class="sheet-theme-item" data-theme="charcoal" title="Carvão & Pérola">
-          <div class="sheet-theme-circle" style="background: #0E1116; border-color: #38BDF8;"></div>
-          <span class="sheet-theme-name">Carvão</span>
-        </div>
-        <div class="sheet-theme-item" data-theme="oled" title="OLED Preto Puro">
-          <div class="sheet-theme-circle" style="background: #000000; border-color: #71717A;"></div>
-          <span class="sheet-theme-name">OLED</span>
-        </div>
-      </div>
-    </div>
-
-    <div style="display: flex; gap: 10px; margin-top: 14px;">
-      <button class="btn" id="sheet-fullscreen" style="flex: 1; justify-content: center; padding: 10px;">⛶ Tela Cheia</button>
-      <button class="btn" id="sheet-zen" style="flex: 1; justify-content: center; padding: 10px;">👁️ Ocultar Barras</button>
-    </div>
   </div>
 
   <!-- Drawer Lateral do Sumário -->
@@ -2132,11 +1932,7 @@
       books: window.BIBLIOTECA_LIVROS || [],
       currentBook: null,
       fontSize: parseInt(localStorage.getItem('lib_font_size') || '23'),
-      theme: localStorage.getItem('lib_theme') || 'cinza-conforto',
-      bionic: false,
-      focusMode: false,
-      isSpeaking: false,
-      speechIndex: 0
+      theme: localStorage.getItem('lib_theme') || 'cinza-conforto'
     };
 
     // DOM Elements
@@ -2168,39 +1964,24 @@
     const btnExportNotes = document.getElementById('btn-export-notes');
     const selectionPopover = document.getElementById('selection-popover');
     const popBtnNote = document.getElementById('pop-btn-note');
-    const popBtnListen = document.getElementById('pop-btn-listen');
-    const btnBionic = document.getElementById('btn-bionic');
-    const btnFocus = document.getElementById('btn-focus');
-    const btnTts = document.getElementById('btn-tts');
     const btnFontInc = document.getElementById('btn-font-inc');
     const btnFontDec = document.getElementById('btn-font-dec');
     const btnFullscreen = document.getElementById('btn-fullscreen');
     const imageModal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-img');
-    const btnZenEye = document.getElementById('btn-zen-eye');
-    if (btnZenEye) {
-      btnZenEye.onclick = () => {
-        document.body.classList.toggle('zen-navbar-hidden');
-      };
-    }
-
-    // Elementos Mobile
-    const mobileSettingsSheet = document.getElementById('mobile-settings-sheet');
-    const btnMobileAa = document.getElementById('btn-mobile-aa');
-    const btnCloseSheet = document.getElementById('btn-close-sheet');
-    const sheetFontInc = document.getElementById('sheet-font-inc');
-    const sheetFontDec = document.getElementById('sheet-font-dec');
-    const sheetFontSizeLabel = document.getElementById('sheet-font-size-label');
-    const sheetFullscreen = document.getElementById('sheet-fullscreen');
-    const sheetZen = document.getElementById('sheet-zen');
-    const dockBtnToc = document.getElementById('dock-btn-toc');
-    const dockBtnAudio = document.getElementById('dock-btn-audio');
-    const dockBtnFocus = document.getElementById('dock-btn-focus');
-    const dockBtnBionic = document.getElementById('dock-btn-bionic');
-    const dockBtnNotes = document.getElementById('dock-btn-notes');
-    const dockNotesCount = document.getElementById('dock-notes-count');
-    const dockBtnSettings = document.getElementById('dock-btn-settings');
     const btnCloseModal = document.getElementById('btn-close-modal');
+
+    // Botões de Navegação Voltar (SaaS Standard)
+    const btnBackReader = document.getElementById('btn-back-reader');
+    const btnStickyBack = document.getElementById('btn-sticky-back');
+    const btnFooterBack = document.getElementById('btn-footer-back');
+    const btnFooterTop = document.getElementById('btn-footer-top');
+    const readerBookTitleBadge = document.getElementById('reader-book-title-badge');
+
+    if (btnBackReader) btnBackReader.onclick = () => goToShelf(true);
+    if (btnStickyBack) btnStickyBack.onclick = () => goToShelf(true);
+    if (btnFooterBack) btnFooterBack.onclick = () => goToShelf(true);
+    if (btnFooterTop) btnFooterTop.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Estado de Destaques
     let currentHighlights = [];
@@ -2643,16 +2424,6 @@
           p.className = 'book-p';
           p.setAttribute('data-page', b.page);
           p.innerHTML = b.text;
-          
-          // Hover ou Toque no Modo Foco
-          const activateParaFocus = () => {
-            if (state.focusMode) {
-              document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('active-focus'));
-              p.classList.add('active-focus');
-            }
-          };
-          p.onmouseenter = activateParaFocus;
-          p.onclick = activateParaFocus;
           frag.appendChild(p);
         }
       });
@@ -2663,12 +2434,12 @@
       renderTocDrawer(book.toc);
       loadAndApplyHighlights(book.id);
 
+      if (readerBookTitleBadge) readerBookTitleBadge.textContent = book.title;
       viewShelf.style.display = 'none';
       viewReader.style.display = 'block';
       const appHeader = document.querySelector('header.app-header');
       if (appHeader) appHeader.style.display = 'none';
       statusPill.style.display = 'flex';
-      if (btnZenEye) btnZenEye.style.display = 'inline-flex';
 
       localStorage.setItem('mode_shelf', '0');
       localStorage.setItem('last_active_book_id', book.id);
@@ -3006,52 +2777,6 @@
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // ==========================================================================
-    // MODO FOCO CEREBRAL (FOCUS MODE)
-    // ==========================================================================
-    const toggleFocusAction = () => {
-      state.focusMode = !state.focusMode;
-      btnFocus.classList.toggle('active', state.focusMode);
-      if (dockBtnFocus) dockBtnFocus.classList.toggle('active', state.focusMode);
-      body.classList.toggle('focus-mode-active', state.focusMode);
-      btnFocus.textContent = state.focusMode ? '🎯 Foco Mental: ON' : '🎯 Foco Mental: OFF';
-    };
-    btnFocus.onclick = toggleFocusAction;
-    if (dockBtnFocus) dockBtnFocus.onclick = toggleFocusAction;
-
-    // BIONIC READING EM TOM ÂMBAR
-    function bionicText(text) {
-      return text.replace(/\b([a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+)\b/g, (match, word) => {
-        if (word.length <= 1) return word;
-        let mid = Math.ceil(word.length * 0.45);
-        if (word.length <= 3) mid = 1;
-        return '<b class="bionic-lead">' + word.slice(0, mid) + '</b>' + word.slice(mid);
-      });
-    }
-
-    const originalParas = new WeakMap();
-
-    const toggleBionicAction = () => {
-      state.bionic = !state.bionic;
-      btnBionic.classList.toggle('active', state.bionic);
-      if (dockBtnBionic) dockBtnBionic.classList.toggle('active', state.bionic);
-      btnBionic.textContent = state.bionic ? '⚡ Bionic: ON' : '⚡ Bionic: OFF';
-
-      const paras = document.querySelectorAll('#reader-content p.book-p');
-      paras.forEach(p => {
-        if (!originalParas.has(p)) {
-          originalParas.set(p, p.innerHTML);
-        }
-        if (state.bionic) {
-          p.innerHTML = bionicText(p.textContent);
-        } else {
-          p.innerHTML = originalParas.get(p);
-        }
-      });
-    };
-    btnBionic.onclick = toggleBionicAction;
-    if (dockBtnBionic) dockBtnBionic.onclick = toggleBionicAction;
-
     // CONTROLES DE TIPOGRAFIA
     btnFontInc.onclick = () => updateFontSize(state.fontSize + 2);
     btnFontDec.onclick = () => updateFontSize(state.fontSize - 2);
@@ -3063,212 +2788,6 @@
         document.exitFullscreen().catch(() => {});
       }
     };
-
-    // ==========================================================================
-    // LEITURA EM VOZ ALTA (PABLO MARÇAL LOCAL OU VOZ NATIVA NA VERCEL/CELULAR)
-    // ==========================================================================
-    const voiceAudio = new Audio();
-    const VOICE_SERVER_URL = window.location.origin.includes('http') ? window.location.origin : 'http://127.0.0.1:5055';
-    let isServerOnline = false;
-
-    // Detecta vozes nativas em português disponíveis no celular ou navegador
-    let nativePtVoice = null;
-    function loadNativeVoices() {
-      if ('speechSynthesis' in window) {
-        const voices = window.speechSynthesis.getVoices();
-        nativePtVoice = voices.find(v => v.lang === 'pt-BR') || voices.find(v => v.lang.startsWith('pt')) || null;
-      }
-    }
-    if ('speechSynthesis' in window) {
-      loadNativeVoices();
-      window.speechSynthesis.onvoiceschanged = loadNativeVoices;
-    }
-
-    async function checkVoiceServer() {
-      try {
-        const res = await fetch(`${VOICE_SERVER_URL}/health`, { signal: AbortSignal.timeout(1500) });
-        if (res.ok) {
-          isServerOnline = true;
-          const badge = document.getElementById('voice-badge');
-          if (badge) {
-            badge.style.display = 'inline-flex';
-            badge.style.background = 'rgba(34,197,94,0.18)';
-            badge.style.color = '#4ADE80';
-            badge.style.borderColor = 'rgba(34,197,94,0.35)';
-            badge.innerHTML = '● Estúdio Pablo';
-          }
-          if (btnTts && !state.isSpeaking) btnTts.textContent = '🔊 Ouvir Pablo Marçal';
-        }
-      } catch (e) {
-        isServerOnline = false;
-        const badge = document.getElementById('voice-badge');
-        if (badge) {
-          badge.style.background = 'rgba(56,189,248,0.15)';
-          badge.style.color = '#38BDF8';
-          badge.style.borderColor = 'rgba(56,189,248,0.3)';
-          badge.innerHTML = '🔊 Voz Nativa';
-        }
-        if (btnTts && !state.isSpeaking) btnTts.textContent = '🔊 Ouvir Narração';
-      }
-    }
-    // Web Edition: 100% nativo sem servidor local
-    isServerOnline = false;
-    // Web Edition: Zero requisições de fundo
-
-    async function speakNext() {
-      const paras = document.querySelectorAll('#reader-content p.book-p');
-      if (!state.isSpeaking || state.speechIndex >= paras.length) {
-        stopSpeech();
-        return;
-      }
-
-      const p = paras[state.speechIndex];
-      paras.forEach(el => el.classList.remove('tts-active'));
-      p.classList.add('tts-active');
-      p.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      const text = p.textContent.trim();
-      if (!text || text.length < 2) {
-        state.speechIndex++;
-        speakNext();
-        return;
-      }
-
-      if (isServerOnline) {
-        const audioUrl = `${VOICE_SERVER_URL}/tts?voice=pablo&text=${encodeURIComponent(text)}`;
-        if (btnTts) btnTts.textContent = '⏳ Pablo Sintetizando...';
-        voiceAudio.src = audioUrl;
-        voiceAudio.onplay = () => {
-          updateSpeechButtons(true);
-        };
-        voiceAudio.onended = () => {
-          if (state.isSpeaking) {
-            state.speechIndex++;
-            speakNext();
-          }
-        };
-        voiceAudio.onerror = () => {
-          // Fallback gracioso para a voz nativa do dispositivo
-          playNativeSpeech(text);
-        };
-
-        // Pré-carregamento suave do próximo parágrafo na GPU
-        if (state.speechIndex + 1 < paras.length) {
-          const nextP = paras[state.speechIndex + 1];
-          const nextText = nextP ? nextP.textContent.trim() : '';
-          if (nextText && nextText.length >= 2) {
-            fetch(`${VOICE_SERVER_URL}/tts?voice=pablo&text=${encodeURIComponent(nextText)}`).catch(() => {});
-          }
-        }
-
-        try {
-          await voiceAudio.play();
-        } catch (err) {
-          playNativeSpeech(text);
-        }
-      } else {
-        // Sem servidor local: usa a voz nativa do celular/navegador (100% compatível com a Vercel)
-        playNativeSpeech(text);
-      }
-    }
-
-    function playNativeSpeech(text) {
-      if (!('speechSynthesis' in window)) {
-        alert('Seu navegador não possui suporte a sintetizador de voz nativo.');
-        stopSpeech();
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      if (nativePtVoice) utterance.voice = nativePtVoice;
-      utterance.lang = 'pt-BR';
-      utterance.rate = 1.05;
-
-      utterance.onstart = () => {
-        updateSpeechButtons(true);
-      };
-
-      utterance.onend = () => {
-        if (state.isSpeaking) {
-          state.speechIndex++;
-          speakNext();
-        }
-      };
-
-      utterance.onerror = (e) => {
-        console.warn('Voz nativa avançando...', e);
-        if (state.isSpeaking) {
-          state.speechIndex++;
-          setTimeout(speakNext, 400);
-        }
-      };
-
-      window.speechSynthesis.speak(utterance);
-    }
-
-    function updateSpeechButtons(speaking) {
-      if (btnTts) {
-        btnTts.classList.toggle('active', speaking);
-        btnTts.textContent = speaking ? '⏸ Pausar Áudio' : (isServerOnline ? '🔊 Ouvir Pablo Marçal' : '🔊 Ouvir Narração');
-      }
-      if (dockBtnAudio) {
-        dockBtnAudio.classList.toggle('active', speaking);
-        const icon = dockBtnAudio.querySelector('.dock-icon');
-        if (icon) icon.textContent = speaking ? '⏸' : '🔊';
-      }
-    }
-
-    function stopSpeech() {
-      voiceAudio.pause();
-      voiceAudio.currentTime = 0;
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      state.isSpeaking = false;
-      updateSpeechButtons(false);
-      document.querySelectorAll('#reader-content p.book-p').forEach(el => el.classList.remove('tts-active'));
-    }
-
-    const toggleSpeechAction = () => {
-      if (state.isSpeaking) {
-        stopSpeech();
-      } else {
-        const paras = Array.from(document.querySelectorAll('#reader-content p.book-p'));
-        let foundIdx = paras.findIndex(p => p.getBoundingClientRect().top >= 70);
-        state.speechIndex = Math.max(0, foundIdx);
-        state.isSpeaking = true;
-        updateSpeechButtons(true);
-        speakNext();
-      }
-    };
-
-    if (btnTts) btnTts.onclick = toggleSpeechAction;
-    if (dockBtnAudio) dockBtnAudio.onclick = toggleSpeechAction;
-
-    async function speakTextDirect(text) {
-      stopSpeech();
-      const selectedVoice = document.getElementById('voice-select')?.value || 'pablo';
-      if (isServerOnline) {
-        voiceAudio.src = `${VOICE_SERVER_URL}/tts?voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
-        try {
-          await voiceAudio.play();
-        } catch (e) {
-          fallbackSpeech(text);
-        }
-      } else {
-        fallbackSpeech(text);
-      }
-    }
-
-    function fallbackSpeech(text) {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      if (nativePtVoice) u.voice = nativePtVoice;
-      u.lang = 'pt-BR';
-      window.speechSynthesis.speak(u);
-    }
 
     // ZOOM DE IMAGEM
     function openImageZoom(src) {
@@ -3287,13 +2806,11 @@
       };
     }
 
-    // VOLTAR PARA A ESTANTE
+    // VOLTAR PARA A ESTANTE (NAVEGAÇÃO SAAS LIMPA E INSTANTÂNEA)
     function goToShelf(pushHistory = true) {
-      stopSpeech();
       selectionPopover.style.display = 'none';
       toggleNotes(false);
       toggleToc(false);
-      toggleMobileSettings(false);
       viewReader.style.display = 'none';
       viewShelf.style.display = 'block';
       
@@ -3302,8 +2819,6 @@
 
       btnBackShelf.style.display = 'none';
       statusPill.style.display = 'none';
-      if (btnZenEye) btnZenEye.style.display = 'none';
-      document.body.classList.remove('zen-navbar-hidden');
       document.title = 'Biblioteca 7D — Leitor Pro & Absorção Mental';
       localStorage.setItem('mode_shelf', '1');
       
@@ -3314,9 +2829,8 @@
       renderShelf();
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
-    btnBackShelf.onclick = () => goToShelf(true);
-    btnHome.onclick = () => goToShelf(true);
-    document.getElementById('btn-back-reader')?.addEventListener('click', () => goToShelf(true));
+    if (btnBackShelf) btnBackShelf.onclick = () => goToShelf(true);
+    if (btnHome) btnHome.onclick = () => goToShelf(true);
 
     // Suporte ao Botão Voltar do Navegador e do Mouse
     window.addEventListener('popstate', (e) => {
@@ -3370,15 +2884,18 @@
 
     window.addEventListener('scroll', updateProgress, { passive: true });
 
-    // Atalho de Teclado: Tecla P ou Espaço para Pausar/Reproduzir; Tecla Z para Modo Imersivo (Ocultar Barra)
+    // Atalho de Teclado: Esc para Voltar à Estante
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-      if (viewReader.style.display !== 'none') {
-        if (e.code === 'KeyP' || (e.code === 'Space' && e.target === document.body)) {
-          if (e.code === 'Space') e.preventDefault();
-          btnTts.click();
-        } else if (e.code === 'KeyZ' || e.code === 'KeyH') {
-          document.body.classList.toggle('zen-navbar-hidden');
+      if (e.key === 'Escape') {
+        if (tocDrawer && tocDrawer.classList.contains('open')) {
+          toggleToc(false);
+        } else if (notesDrawer && notesDrawer.classList.contains('open')) {
+          toggleNotes(false);
+        } else if (imageModal && imageModal.classList.contains('open')) {
+          imageModal.classList.remove('open');
+        } else if (viewReader.style.display === 'block') {
+          goToShelf(true);
         }
       }
     });
